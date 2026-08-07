@@ -1,0 +1,62 @@
+import { siteConfig } from '~/config/site'
+
+/**
+ * Données structurées JSON-LD (schema.org) — améliore l'affichage dans les
+ * résultats de recherche. `useOrganizationSchema()` est posé une fois dans le
+ * layout par défaut ; les autres sont appelés par page.
+ */
+export function useOrganizationSchema() {
+  // Rien à publier tant que la fiche entreprise n'est pas renseignée.
+  if (!siteConfig.legalName || !siteConfig.url) return
+
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    'name': siteConfig.legalName,
+    'url': siteConfig.url,
+    'logo': `${siteConfig.url}/images/logo.png`,
+    'description': siteConfig.description,
+    'email': siteConfig.contact.email,
+    'telephone': siteConfig.contact.phone,
+    'address': {
+      '@type': 'PostalAddress',
+      'streetAddress': siteConfig.contact.address.street,
+      'postalCode': siteConfig.contact.address.postalCode,
+      'addressLocality': siteConfig.contact.address.city,
+      'addressCountry': siteConfig.contact.address.country,
+    },
+    'sameAs': siteConfig.social.map(s => s.href),
+  })
+}
+
+export function useBreadcrumbSchema(items: { name: string, path: string }[]) {
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': items.map((item, index) => ({
+      '@type': 'ListItem',
+      'position': index + 1,
+      'name': item.name,
+      'item': `${siteConfig.url}${item.path}`,
+    })),
+  })
+}
+
+export function useFaqSchema(faq: { question: string, answer: string }[]) {
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': faq.map(item => ({
+      '@type': 'Question',
+      'name': item.question,
+      'acceptedAnswer': { '@type': 'Answer', 'text': item.answer },
+    })),
+  })
+}
+
+/** Injecte un bloc <script type="application/ld+json">. */
+function useJsonLd(data: Record<string, unknown>) {
+  useHead({
+    script: [{ type: 'application/ld+json', innerHTML: JSON.stringify(data) }],
+  })
+}

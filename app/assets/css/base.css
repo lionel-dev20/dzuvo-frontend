@@ -1,0 +1,82 @@
+/**
+ * Styles d'éléments HTML. Tout le reste passe par les classes Tailwind
+ * dans les composants — aucun `<style scoped>` dans le projet.
+ * Le reset vient du preflight de Tailwind.
+ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--spacing-header) + 1rem);
+  }
+
+  body {
+    /* Dark profond : la nuance la plus sombre du noir primaire du guide. */
+    background-color: var(--color-primary-darker);
+    color: var(--color-tertiary-500);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Échelle typographique du guide de style. */
+  h1 { font-size: var(--text-h1); font-weight: 700; }
+  h2 { font-size: var(--text-h2); font-weight: 700; }
+  h3 { font-size: var(--text-h3); font-weight: 700; }
+  h4 { font-size: var(--text-h4); font-weight: 500; }
+  h5 { font-size: var(--text-h5); font-weight: 400; }
+
+  h1, h2, h3, h4, h5 {
+    color: var(--color-tertiary-50);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  @media (width >= 1024px) {
+    body { font-size: var(--text-body-lg); }
+
+    h1 { font-size: var(--text-h1-lg); }
+    h2 { font-size: var(--text-h2-lg); }
+    h3 { font-size: var(--text-h3-lg); }
+    h4 { font-size: var(--text-h4-lg); }
+    h5 { font-size: var(--text-h5-lg); }
+  }
+
+  p { text-wrap: pretty; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 3px;
+    border-radius: var(--radius-btn);
+  }
+
+  ::selection {
+    background: var(--color-secondary);
+    color: var(--color-tertiary-50);
+  }
+}
+
+/* Transition entre les pages (app.pageTransition dans nuxt.config). */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
