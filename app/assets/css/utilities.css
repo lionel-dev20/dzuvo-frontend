@@ -1,0 +1,105 @@
+/**
+ * Utilitaires Tailwind maison (`@utility`), utilisables comme n'importe
+ * quelle classe du framework et combinables avec les variants.
+ */
+
+/*
+ * Bouton principal du site. Référence unique : le CTA « Créer un compte » du
+ * header. Tous les boutons d'action reprennent ce style.
+ */
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-inline: --spacing(4.5);
+  padding-block: --spacing(2.5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: var(--color-secondary);
+  color: var(--color-tertiary-50);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 180ms, color 180ms;
+
+  &:hover {
+    background-color: var(--color-secondary-light);
+    color: var(--color-secondary);
+  }
+
+  &:active {
+    background-color: var(--color-secondary-active);
+    color: var(--color-tertiary-50);
+  }
+}
+
+/*
+ * Variante secondaire : même gabarit, en contour. Reprend le CTA sombre du
+ * guide, dont l'état survolé est un fond clair sur texte noir.
+ */
+@utility btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: --spacing(2);
+  padding-inline: --spacing(4.5);
+  padding-block: --spacing(2.5);
+  border: 1px solid var(--color-tertiary-500);
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--color-tertiary-50);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 180ms, color 180ms, border-color 180ms;
+
+  &:hover {
+    background-color: var(--color-tertiary-50);
+    color: var(--color-primary);
+  }
+
+  &:active {
+    background-color: var(--color-primary-light-active);
+    border-color: var(--color-primary-light-active);
+    color: var(--color-primary);
+  }
+}
+
+/* Container pleine largeur : gouttière 12px, 32px dès md, 64px dès lg. */
+@utility container {
+  width: 100%;
+  padding-inline: --spacing(3);
+
+  @media (width >= 768px) {
+    padding-inline: --spacing(8);
+  }
+
+  @media (width >= 1024px) {
+    padding-inline: --spacing(30);
+  }
+}
+
+/* Champ de formulaire : même gabarit partout (contact, compte, recherche). */
+@utility field {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: --alpha(var(--color-tertiary-500) / 6%);
+  padding-inline: --spacing(4);
+  padding-block: --spacing(3);
+  color: var(--color-tertiary-50);
+  outline: none;
+  transition: border-color 180ms;
+
+  &::placeholder {
+    color: var(--color-tertiary-800);
+  }
+
+  &:focus {
+    border-color: var(--color-secondary);
+  }
+}
+
+/* Champ en erreur : la bordure double le message, jamais seule. */
+@utility field-invalid {
+  border-color: var(--color-secondary);
+}

@@ -1,0 +1,105 @@
+/**
+ * Design tokens DZUVO — transcription du guide de style (Section 1 / Color).
+ * Unique source de vérité : chaque valeur devient une classe Tailwind
+ * (`bg-primary`, `text-secondary-hover`, `text-tertiary-800`, `rounded-btn`…).
+ * Ne jamais écrire une couleur en dur dans un composant.
+ */
+@theme {
+  /* ---------- Typographie ---------- */
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Mobile */
+  --text-h1: 2.375rem;   /* 38px — bold */
+  --text-h2: 1.75rem;    /* 28px — bold */
+  --text-h3: 1.25rem;    /* 20px — bold */
+  --text-h4: 0.9375rem;  /* 15px — medium */
+  --text-h5: 0.8125rem;  /* 13px — regular */
+  --text-body: 0.8125rem;/* 13px — regular */
+
+  /* Titre de héros, desktop : 64px sur une interligne de 92px. */
+  --text-hero: 4rem;
+  --text-hero--line-height: 5.75rem;
+
+  /* Desktop (≥ 1024px) */
+  --text-h1-lg: 2.8125rem; /* 45px */
+  --text-h2-lg: 2.25rem;   /* 36px */
+  --text-h3-lg: 1.75rem;   /* 28px */
+  --text-h4-lg: 1.375rem;  /* 22px */
+  --text-h5-lg: 0.9375rem; /* 15px */
+  --text-body-lg: 0.9375rem; /* 15px */
+
+  /* ---------- Noir primaire ---------- */
+  --color-primary-light: #e6e6e8;
+  --color-primary-light-hover: #d9d9dc;
+  --color-primary-light-active: #b1b0b6;
+  --color-primary: #030014;
+  --color-primary-hover: #030012;
+  --color-primary-active: #020010;
+  --color-primary-dark: #02000f;
+  --color-primary-dark-hover: #02000c;
+  --color-primary-dark-active: #010009;
+  --color-primary-darker: #010007;
+
+  /* ---------- Rouge secondaire ---------- */
+  --color-secondary-light: #fee6e6;
+  --color-secondary-light-hover: #fed9da;
+  --color-secondary-light-active: #fdb1b2;
+  --color-secondary: #f70205;
+  --color-secondary-hover: #de0205;
+  --color-secondary-active: #c60204;
+  --color-secondary-dark: #b90204;
+  --color-secondary-dark-hover: #940103;
+  --color-secondary-dark-active: #6f0102;
+  --color-secondary-darker: #560102;
+
+  /* ---------- Tertiaire (textes sur fond sombre) ---------- */
+  --color-tertiary-50: #ffffff;
+  --color-tertiary-100: #fffffe;
+  --color-tertiary-200: #fffffe;
+  --color-tertiary-300: #fefffe;
+  --color-tertiary-400: #fefffd;
+  --color-tertiary-500: #fefffd;
+  --color-tertiary-600: #e7e8e6;
+  --color-tertiary-700: #b4b5b4;
+  --color-tertiary-800: #8c8c8b;
+  --color-tertiary-900: #6b6b6a;
+
+  /* ---------- Fonds clairs ---------- */
+  --color-background-50: #fefefe;
+  --color-background-100: #fbfbfa;
+  --color-background-200: #f9f9f8;
+  --color-background-300: #f6f6f5;
+  --color-background-400: #f5f5f3;
+  --color-background-500: #f2f2f0;
+  --color-background-600: #dcdcda;
+  --color-background-700: #acacaa;
+  --color-background-800: #858584;
+  --color-background-900: #666665;
+
+  /* ---------- Défilement continu des témoignages ---------- */
+  /* La piste contient les cartes en double : à -50%, la boucle est invisible. */
+  --animate-marquee: marquee 46s linear infinite;
+  --animate-marquee-reverse: marquee-reverse 52s linear infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @keyframes marquee-reverse {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+
+  /* ---------- Rayons ---------- */
+  /* Plafond imposé par le guide : 12px sur les boutons. */
+  --radius-btn: 12px;
+
+  /* ---------- Structure ---------- */
+  --spacing-header: 96px; /* logo 72px + 12px de padding vertical */
+
+  /* Seuil de bascule du header : en dessous, la nav desktop ne tient plus
+     (logo + ville + 5 liens + actions ≈ 1213px, plus les gouttières).
+     À réajuster si la taille du logo ou le padding du header changent. */
+  --breakpoint-nav: 1440px;
+}
