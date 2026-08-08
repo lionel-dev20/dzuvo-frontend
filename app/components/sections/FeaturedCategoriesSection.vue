@@ -8,6 +8,17 @@ useScrollReveal(root)
    simplement sa zone vide, jamais une vignette cassée. */
 const brokenImages = reactive(new Set<string>())
 
+/* Préchargement pour détecter les images cassées des spotlights
+   (indispensable puisqu'on passe en background-image, donc plus d'événement @error natif). */
+onMounted(() => {
+  categorySpotlights.forEach((spotlight) => {
+    if (!spotlight.image) return
+    const img = new Image()
+    img.onerror = () => brokenImages.add(spotlight.id)
+    img.src = spotlight.image
+  })
+})
+
 /* Habillage commun aux tuiles : surface surélevée sur le fond sombre. */
 const tile = 'group relative flex h-full flex-col overflow-hidden rounded-2xl bg-primary transition-transform duration-300 hover:z-10 hover:scale-105'
 const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-500/10 text-tertiary-500 transition-colors group-hover:bg-secondary group-hover:text-tertiary-50'
@@ -15,12 +26,11 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
 
 <template>
   <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="Nos meilleures catégories">
-    <!-- Rangée 1 — quatre cartes catégorie -->
-     <h3 class="text-center pb-4 md:pb-12">Nos offres du moment</h3>
+    <!-- Rangée 1 — quatre cartes catégorie (inchangée) -->
+    <h3 class="text-center pb-4 md:pb-12">Nos offres du moment</h3>
     <ul data-reveal-group class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <li v-for="card in categoryCards" :key="card.id" data-reveal>
         <NuxtLink :to="card.to" :class="tile">
-          <!-- Zone visuelle -->
           <div class="relative aspect-4/3 overflow-hidden">
             <span
               v-if="card.badge"
@@ -40,7 +50,6 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
             >
           </div>
 
-          <!-- Bloc tarifaire et libellés -->
           <div class="flex flex-1 flex-col p-5">
             <p v-if="card.fromLabel" class="text-body text-tertiary-800">{{ card.fromLabel }}</p>
 
@@ -72,23 +81,20 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
       </li>
     </ul>
 
-    <!-- Rangée 2 — deux panneaux larges -->
+    <!-- Rangée 2 — deux panneaux larges, images en background -->
     <ul data-reveal-group class="mt-4 grid gap-4 lg:grid-cols-2">
       <li v-for="spotlight in categorySpotlights" :key="spotlight.id" data-reveal>
         <NuxtLink :to="spotlight.to" :class="[tile, 'min-h-[320px] md:min-h-[380px]']">
           <!-- Panneau photo : le texte se pose sur l'image -->
           <template v-if="spotlight.cover">
-            <img
+            <div
               v-if="spotlight.image && !brokenImages.has(spotlight.id)"
-              :src="spotlight.image"
-              alt=""
-              class="absolute inset-0 size-full object-cover"
-              width="960"
-              height="540"
-              loading="lazy"
-              @error="brokenImages.add(spotlight.id)"
-            >
-            <div class="absolute inset-0 bg-primary/55" />
+              class="absolute inset-0 size-full bg-cover bg-center"
+              :style="{ backgroundImage: `url(${spotlight.image})` }"
+              role="img"
+              aria-hidden="true"
+            />
+            <div class="absolute  bg-primary/55" />
             <div class="relative mt-auto p-6 md:p-8">
               <h3 class="max-w-lg text-h3 font-bold text-balance text-tertiary-50 uppercase">{{ spotlight.title }}</h3>
               <p v-if="spotlight.subtitle" class="mt-3 text-tertiary-600">{{ spotlight.subtitle }}</p>
@@ -113,16 +119,13 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
               </div>
 
               <div class="relative hidden aspect-square sm:block">
-                <img
+                <div
                   v-if="spotlight.image && !brokenImages.has(spotlight.id)"
-                  :src="spotlight.image"
-                  alt=""
-                  class="relative size-full rounded-full object-cover"
-                  width="420"
-                  height="420"
-                  loading="lazy"
-                  @error="brokenImages.add(spotlight.id)"
-                >
+                  class="size-full rounded-full bg-cover bg-center"
+                  :style="{ backgroundImage: `url(${spotlight.image})` }"
+                  role="img"
+                  aria-hidden="true"
+                />
               </div>
             </div>
 

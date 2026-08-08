@@ -1,8 +1,14 @@
 import type { RegisterPayload } from '#shared/types/forms'
 import { hasErrors, validateRegister } from '#shared/utils/validation'
+import {
+  authenticate,
+  registerCustomer,
+  requireWooForRegister,
+  setAuthCookie,
+} from '../../utils/auth'
 import { checkRateLimit } from '../../utils/rate-limit'
 
-/** Création de compte client. */
+/** Création de compte client via WooCommerce, puis connexion automatique. */
 export default defineEventHandler(async (event) => {
   const body = await readBody<RegisterPayload>(event)
 
@@ -22,12 +28,26 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // TODO: créer le client dans WooCommerce (POST /wp-json/wc/v3/customers),
-  // puis enchaîner sur la connexion pour éviter une double saisie.
+  requireWooForRegister()
 
-  throw createError({
-    statusCode: 501,
-    statusMessage: 'Création de compte non configurée',
-    message: 'La création de compte sera disponible à l’ouverture de la boutique.',
+  const customer = await registerCustomer({
+    email: body.email,
+    firstName: body.firstName,
+    lastName: body.lastName,
+    password: body.password,
   })
+
+  // Connexion immédiate : courriel d'abord, puis identifiant WooCommerce si besoin.
+  const token = await authenticate(body.email, body.password, customer.username)
+  setAuthCookie(event, token, true)
+
+  if (body.newsletter) {
+    const config = useRuntimeConfig()
+    if (!config.newsletterApiKey && import.meta.dev) {
+      console.info('[register] inscription newsletter simulée :', body.email)
+    }
+    // TODO: brancher le fournisseur newsletter si configuré.
+  }
+
+  return { success: true, message: 'Compte créé avec succès.' }
 })

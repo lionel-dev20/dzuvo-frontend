@@ -1,9 +1,14 @@
 import type { LoginPayload } from '#shared/types/forms'
 import { hasErrors, validateLogin } from '#shared/utils/validation'
+import {
+  authenticate,
+  requireWooForLogin,
+  setAuthCookie,
+} from '../../utils/auth'
 import { checkRateLimit } from '../../utils/rate-limit'
 
 /**
- * Connexion client.
+ * Connexion client via JWT WordPress.
  *
  * La validation est rejouée ici : le client peut être contourné. Le message
  * d'erreur reste volontairement identique que le compte existe ou non, pour ne
@@ -28,19 +33,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // TODO: authentifier auprès de WordPress/WooCommerce.
-  // Piste recommandée : plugin JWT Authentication for WP REST API, puis dépôt
-  // du jeton dans un cookie httpOnly — jamais dans le localStorage.
-  //
-  // const { token } = await $fetch(`${baseUrl}/wp-json/jwt-auth/v1/token`, {
-  //   method: 'POST',
-  //   body: { username: body.email, password: body.password },
-  // })
-  // setCookie(event, 'dzuvo_token', token, { httpOnly: true, sameSite: 'lax', secure: true })
+  requireWooForLogin()
 
-  throw createError({
-    statusCode: 501,
-    statusMessage: 'Authentification non configurée',
-    message: 'La connexion sera disponible à l’ouverture de la boutique.',
-  })
+  const token = await authenticate(body.email, body.password)
+  setAuthCookie(event, token, body.remember ?? true)
+
+  return { success: true, message: 'Connexion réussie.' }
 })

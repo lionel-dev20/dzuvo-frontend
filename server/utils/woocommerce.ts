@@ -52,7 +52,11 @@ export function isConfigured() {
   return Boolean(baseUrl && key && secret)
 }
 
-/** Appel authentifié à l'API REST v3. Renvoie le corps et le total paginé. */
+export function hasBaseUrl() {
+  return Boolean(wooConfig().baseUrl)
+}
+
+/** Appel authentifié GET à l'API REST v3. Renvoie le corps et le total paginé. */
 async function wooFetch<T>(path: string, query: Record<string, unknown> = {}) {
   const { baseUrl, key, secret } = wooConfig()
   const url = `${baseUrl}/wp-json/wc/v3/${path}`
@@ -71,6 +75,96 @@ async function wooFetch<T>(path: string, query: Record<string, unknown> = {}) {
     data: response._data as T,
     total: Number(response.headers.get('x-wp-total') ?? 0),
   }
+}
+
+/** Écriture authentifiée (POST, PUT, DELETE) vers l'API REST v3. */
+async function wooMutate<T>(
+  method: 'POST' | 'PUT' | 'DELETE',
+  path: string,
+  body?: Record<string, unknown>,
+  query: Record<string, unknown> = {},
+) {
+  const { baseUrl, key, secret } = wooConfig()
+  const url = `${baseUrl}/wp-json/wc/v3/${path}`
+
+  const clean: Record<string, string | number | boolean> = {}
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined && v !== null && v !== '') clean[k] = v as string | number | boolean
+  }
+
+  const response = isSecure(baseUrl)
+    ? await $fetch.raw<T>(url, {
+        method,
+        query: clean,
+        body,
+        headers: { Authorization: basicAuthHeader(key, secret) },
+      })
+    : await $fetch.raw<T>(signOAuthUrl(url, clean, key, secret, method), { method, body })
+
+  return response._data as T
+}
+
+interface WooCustomer {
+  id: number
+  email: string
+  username: string
+  first_name: string
+  last_name: string
+}
+
+interface WooApiError {
+  code?: string
+  message?: string
+}
+
+/** WordPress n'accepte pas le @ dans user_login : on dérive un identifiant sûr. */
+export function usernameFromEmail(email: string, suffix = '') {
+  const local = email.trim().toLowerCase().split('@')[0] ?? ''
+  const sanitized = local.replace(/[^a-z0-9._-]/g, '').replace(/^\.+|\.+$/g, '')
+  const base = (sanitized || 'client').slice(0, 50)
+  return suffix ? `${base}${suffix}`.slice(0, 60) : base
+}
+
+function extractWooApiError(error: unknown): WooApiError | null {
+  if (!error || typeof error !== 'object') return null
+  const err = error as { data?: WooApiError, response?: { _data?: WooApiError } }
+  if (err.data?.code) return err.data
+  if (err.response?._data?.code) return err.response._data
+  return null
+}
+
+/** Crée un client WooCommerce. Réessaie si le nom d'utilisateur est déjà pris. */
+export async function createCustomer(payload: {
+  email: string
+  firstName: string
+  lastName: string
+  password: string
+}) {
+  const email = payload.email.trim().toLowerCase()
+  const baseUsername = usernameFromEmail(email)
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const username = attempt === 0
+      ? baseUsername
+      : usernameFromEmail(email, String(Math.floor(Math.random() * 9000 + 1000)))
+
+    try {
+      return await wooMutate<WooCustomer>('POST', 'customers', {
+        email,
+        first_name: payload.firstName.trim(),
+        last_name: payload.lastName.trim(),
+        username,
+        password: payload.password,
+      })
+    }
+    catch (error: unknown) {
+      const woo = extractWooApiError(error)
+      if (woo?.code === 'registration-error-username-exists' && attempt < 2) continue
+      throw error
+    }
+  }
+
+  throw new Error('Impossible de créer le client')
 }
 
 /* ---------- Transformateurs : WooCommerce → modèle du site ---------- */
