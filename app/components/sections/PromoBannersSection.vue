@@ -13,14 +13,14 @@ const banners = [
     id: 'distributeurs',
     label: 'Pour les distributeurs',
     to: '/professionnels',
-    image: '/images/bannieres/distributeurs.jpg',
+    image: '/images/bannieres/imgdzuvo8.jpeg',
     alt: 'Entrepôt DZUVO et préparation des commandes',
   },
   {
     id: 'produits',
     label: 'Nos produits',
     to: '/categories',
-    image: '/images/bannieres/produits.jpg',
+    image: '/images/bannieres/imgdzuvo7.jpeg',
     alt: 'Gamme de pièces et accessoires DZUVO',
   },
 ]
@@ -45,7 +45,7 @@ const banners = [
             @error="brokenImages.add(banner.id)"
           >
           <!-- Voile : le libellé doit tenir quelle que soit la photo dessous. -->
-          <span class="absolute inset-0 bg-primary/35" aria-hidden="true" />
+          <span class="absolute bg-primary/35" aria-hidden="true" />
 
           <span class="btn-primary relative text-h4 uppercase md:px-7 md:py-4">
             {{ banner.label }}
