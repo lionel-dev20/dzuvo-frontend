@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CatalogProduct, ProductListResult } from '#shared/types/catalog'
+import { formatPrice as money } from '#shared/utils/format'
 
 /**
  * Fiche produit : visuel à gauche, achat à droite, puis caractéristiques et
@@ -28,7 +29,22 @@ const activeImage = ref(0)
 const brokenImages = reactive(new Set<number>())
 const quantity = ref(1)
 
-const money = (value: number) => `${value.toFixed(2).replace('.', ',')} $`
+const { add } = useCart()
+
+/** Plafond de commande : le stock quand il est géré, sinon un garde-fou. */
+const ceiling = computed(() => product.value?.stockQuantity ?? 99)
+
+/**
+ * Un produit à déclinaisons demande de choisir une variation avant d'être
+ * commandé : tant que le sélecteur n'existe pas, on ne l'ajoute pas au panier.
+ */
+const needsChoice = computed(() => Boolean(product.value?.variable) || product.value?.purchasable === false)
+const canAdd = computed(() => Boolean(product.value?.inStock) && !needsChoice.value)
+
+function addToCart() {
+  if (!product.value || !canAdd.value) return
+  add(product.value, quantity.value)
+}
 const discount = computed(() => {
   const p = product.value
   return p?.regularPrice ? Math.round((1 - p.price / p.regularPrice) * 100) : 0
@@ -157,15 +173,22 @@ useSeo({
               <span class="w-10 text-center text-tertiary-50 tabular-nums" aria-live="polite">{{ quantity }}</span>
               <button
                 type="button"
-                class="grid size-11 cursor-pointer place-items-center text-tertiary-500 hover:text-secondary"
+                class="grid size-11 cursor-pointer place-items-center text-tertiary-500 hover:text-secondary disabled:cursor-default disabled:opacity-30"
                 aria-label="Ajouter une unité"
-                @click="quantity++"
+                :disabled="quantity >= ceiling"
+                @click="quantity = Math.min(ceiling, quantity + 1)"
               >
                 +
               </button>
             </div>
 
-            <button type="button" class="flex-1 justify-center" :class="product.inStock ? 'btn-primary' : 'btn-secondary'">
+            <button
+              type="button"
+              class="flex-1 justify-center"
+              :class="canAdd ? 'btn-primary' : 'btn-secondary'"
+              :disabled="product.inStock && !canAdd"
+              @click="addToCart"
+            >
               <svg v-if="product.inStock" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M3 4h2l1.6 9.2a1.5 1.5 0 0 0 1.5 1.3h6.9a1.5 1.5 0 0 0 1.5-1.2L18 7H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                 <circle cx="8.5" cy="17.4" r="1.3" stroke="currentColor" stroke-width="1.6" />
@@ -175,9 +198,14 @@ useSeo({
                 <path d="M10 2.4a5 5 0 0 0-5 5v3.1l-1.4 2.4a.6.6 0 0 0 .5.9h11.8a.6.6 0 0 0 .5-.9L15 10.5V7.4a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
                 <path d="M8.1 16.4a2 2 0 0 0 3.8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
               </svg>
-              {{ product.inStock ? 'Ajouter au panier' : 'Me prévenir du retour' }}
+              {{ !product.inStock ? 'Me prévenir du retour' : canAdd ? 'Ajouter au panier' : 'Bientôt commandable' }}
             </button>
           </div>
+
+          <!-- Déclinaisons : la commande en ligne attend le sélecteur de variation. -->
+          <p v-if="product.inStock && needsChoice" class="mt-3 text-[13px] text-tertiary-800">
+            Ce produit existe en plusieurs déclinaisons. Contactez-nous pour le commander.
+          </p>
         </div>
 
         <!-- Caractéristiques -->

@@ -36,6 +36,12 @@ interface WooProduct {
   rating_count: number
   attributes: { name: string, options: string[] }[]
   featured: boolean
+  type: string
+  purchasable: boolean
+  manage_stock: boolean
+  stock_quantity: number | null
+  cross_sell_ids: number[]
+  upsell_ids: number[]
 }
 
 export function wooConfig() {
@@ -198,6 +204,10 @@ function toProduct(raw: WooProduct): CatalogProduct {
     onSale: raw.on_sale,
     inStock: raw.stock_status === 'instock',
     stockLabel: raw.stock_status === 'instock' ? 'Livraison 24 h' : 'Non disponible',
+    variable: raw.type === 'variable',
+    purchasable: raw.purchasable !== false,
+    // `stock_quantity` n'a de sens que si la boutique gère les stocks.
+    stockQuantity: raw.manage_stock && raw.stock_quantity != null ? raw.stock_quantity : undefined,
     images: raw.images?.map(i => ({ src: i.src, alt: i.alt || raw.name })) ?? [],
     categories: raw.categories ?? [],
     rating: Number(raw.average_rating || 0),
@@ -301,3 +311,228 @@ export async function fetchProductBySlug(slug: string): Promise<CatalogProduct |
   const { data } = await wooFetch<WooProduct[]>('products', { slug, per_page: 1 })
   return data[0] ? toProduct(data[0]) : null
 }
+
+/**
+ * Produits par identifiants, pour le panier.
+ *
+ * WooCommerce plafonne `per_page` à 100 : au-delà, on découpe. L'ordre de la
+ * réponse n'est pas garanti, l'appelant travaille donc par identifiant.
+ */
+export async function fetchProductsByIds(ids: number[]): Promise<CatalogProduct[]> {
+  const unique = [...new Set(ids)].filter(id => Number.isInteger(id) && id > 0)
+  if (!unique.length) return []
+
+  const batches: number[][] = []
+  for (let i = 0; i < unique.length; i += 100) batches.push(unique.slice(i, i + 100))
+
+  const results = await Promise.all(
+    batches.map(batch =>
+      wooFetch<WooProduct[]>('products', {
+        include: batch.join(','),
+        per_page: batch.length,
+        // Sans ce tri, WooCommerce applique « date » et ignore l'ordre demandé.
+        orderby: 'include',
+      }),
+    ),
+  )
+
+  return results.flatMap(r => r.data.map(toProduct))
+}
+
+/**
+ * Ventes croisées d'un produit, telles que définies dans WooCommerce
+ * (onglet « Produits liés »). Vide si le marchand n'en a pas renseigné.
+ *
+ * La rubrique du produit source est renvoyée avec : elle sert à compléter les
+ * suggestions quand l'appelant ne la connaît pas.
+ */
+export async function fetchCrossSells(
+  productId: number,
+): Promise<{ items: CatalogProduct[], category?: string }> {
+  const { data } = await wooFetch<WooProduct[]>('products', { include: String(productId), per_page: 1 })
+  const source = data[0]
+  if (!source) return { items: [] }
+
+  const category = source.categories?.[0]?.slug
+  const ids = [...(source.cross_sell_ids ?? []), ...(source.upsell_ids ?? [])]
+  if (!ids.length) return { items: [], category }
+
+  return { items: await fetchProductsByIds(ids), category }
+}
+
+/* ---------- Codes avantage ---------- */
+
+export interface WooCoupon {
+  id: number
+  code: string
+  amount: string
+  discount_type: 'percent' | 'fixed_cart' | 'fixed_product'
+  description: string
+  date_expires: string | null
+  usage_limit: number | null
+  usage_count: number
+  minimum_amount: string
+  maximum_amount: string
+  product_ids: number[]
+  excluded_product_ids: number[]
+  exclude_sale_items: boolean
+}
+
+/** Recherche un code avantage. `null` si le code n'existe pas. */
+export async function fetchCoupon(code: string): Promise<WooCoupon | null> {
+  const { data } = await wooFetch<WooCoupon[]>('coupons', {
+    code: code.trim().toLowerCase(),
+    per_page: 1,
+  })
+  return data[0] ?? null
+}
+
+/* ---------- Commandes ---------- */
+
+/* ---------- Zones de livraison ---------- */
+
+export interface WooShippingMethod {
+  instance_id: number
+  method_id: string
+  method_title: string
+  title: string
+  enabled: boolean
+  settings?: Record<string, { value?: string }>
+}
+
+export interface WooShippingZone {
+  id: number
+  name: string
+  locations: { code: string, type: string }[]
+  methods: WooShippingMethod[]
+}
+
+/** Zones, avec leurs lieux et méthodes. Trois appels par zone, mis en cache. */
+const shippingCache = { value: null as WooShippingZone[] | null, expiresAt: 0 }
+const SHIPPING_TTL = 5 * 60 * 1000
+
+export async function fetchShippingZones(): Promise<WooShippingZone[]> {
+  if (shippingCache.value && shippingCache.expiresAt > Date.now()) return shippingCache.value
+
+  const { data: zones } = await wooFetch<{ id: number, name: string }[]>('shipping/zones')
+
+  const detailed = await Promise.all(
+    zones.map(async (zone) => {
+      // La zone 0 (« reste du monde ») n'a pas de lieux : l'interroger vaut un 404.
+      const [locations, methods] = await Promise.all([
+        zone.id === 0
+          ? Promise.resolve({ data: [] as { code: string, type: string }[] })
+          : wooFetch<{ code: string, type: string }[]>(`shipping/zones/${zone.id}/locations`),
+        wooFetch<WooShippingMethod[]>(`shipping/zones/${zone.id}/methods`),
+      ])
+
+      return { id: zone.id, name: zone.name, locations: locations.data, methods: methods.data }
+    }),
+  )
+
+  shippingCache.value = detailed
+  shippingCache.expiresAt = Date.now() + SHIPPING_TTL
+  return detailed
+}
+
+/* ---------- Commandes ---------- */
+
+export interface WooAddress {
+  first_name: string
+  last_name: string
+  address_1: string
+  address_2?: string
+  city: string
+  state: string
+  postcode: string
+  country: string
+  email?: string
+  phone?: string
+  company?: string
+}
+
+export interface WooOrderLine {
+  name: string
+  quantity: number
+  total: string
+}
+
+export interface WooOrder {
+  id: number
+  number: string
+  order_key: string
+  status: string
+  total: string
+  discount_total: string
+  shipping_total: string
+  currency: string
+  billing: WooAddress
+  shipping: WooAddress
+  line_items: WooOrderLine[]
+  shipping_lines: { method_title: string }[]
+  /** URL de règlement, calculée par WooCommerce lui-même. */
+  payment_url?: string
+}
+
+/**
+ * Crée une commande en attente de paiement.
+ *
+ * C'est WooCommerce qui fait foi sur le montant : on lui envoie les lignes,
+ * le code avantage et la livraison, il recalcule et renvoie le total. C'est
+ * ce total-là, jamais celui du navigateur, qui part chez Stripe.
+ */
+export async function createOrder(payload: {
+  lineItems: { product_id: number, quantity: number }[]
+  couponCode?: string
+  customerId?: number
+  billing: WooAddress
+  shipping: WooAddress
+  shippingLine?: { method_id: string, method_title: string, total: string }
+  customerNote?: string
+}): Promise<WooOrder> {
+  return wooMutate<WooOrder>('POST', 'orders', {
+    status: 'pending',
+    payment_method: 'stripe',
+    payment_method_title: 'Carte bancaire',
+    line_items: payload.lineItems,
+    billing: payload.billing,
+    shipping: payload.shipping,
+    ...(payload.shippingLine ? { shipping_lines: [payload.shippingLine] } : {}),
+    ...(payload.couponCode ? { coupon_lines: [{ code: payload.couponCode }] } : {}),
+    ...(payload.customerId ? { customer_id: payload.customerId } : {}),
+    ...(payload.customerNote ? { customer_note: payload.customerNote } : {}),
+  })
+}
+
+export async function fetchOrder(id: number): Promise<WooOrder | null> {
+  try {
+    const { data } = await wooFetch<WooOrder>(`orders/${id}`)
+    return data
+  }
+  catch {
+    return null
+  }
+}
+
+/**
+ * Marque une commande payée.
+ *
+ * `set_paid` déclenche la mécanique WooCommerce complète : décrément du
+ * stock, courriels de confirmation, passage en « en traitement ». L'appel est
+ * volontairement rejouable — le retour du navigateur et le webhook Stripe
+ * peuvent tous deux l'atteindre, et WooCommerce ignore un paiement déjà
+ * enregistré.
+ */
+export async function markOrderPaid(id: number, transactionId: string): Promise<WooOrder> {
+  return wooMutate<WooOrder>('PUT', `orders/${id}`, {
+    status: 'processing',
+    set_paid: true,
+    transaction_id: transactionId,
+  })
+}
+
+/** Annule une commande restée sans paiement (échec, abandon). */
+export async function cancelOrder(id: number) {
+  return wooMutate<WooOrder>('PUT', `orders/${id}`, { status: 'cancelled' })
+}
+

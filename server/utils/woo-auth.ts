@@ -45,10 +45,20 @@ export function signOAuthUrl(
     oauth_signature_method: 'HMAC-SHA256',
   })
 
-  // WooCommerce trie les clés, encode chaque paire, puis joint avec %26.
+  /*
+   * WooCommerce trie les clés, encode chaque clé et chaque valeur, puis
+   * ré-encode la chaîne « clé=valeur » entière avant de joindre avec %26
+   * (WC_REST_Authentication::join_with_equals_sign). Clés et valeurs sont donc
+   * encodées DEUX fois dans la chaîne à signer.
+   *
+   * Sans caractère réservé, double encodage et simple encodage donnent le même
+   * résultat — d'où une signature qui paraît correcte tant qu'aucune valeur ne
+   * contient d'espace ou de virgule. Dès que c'en est une (`include=35,31`,
+   * `search=tapis hiver`), l'omettre vaut un 401.
+   */
   const normalized = Object.keys(params)
     .sort()
-    .map(k => `${rawEncode(k)}%3D${rawEncode(params[k]!)}`)
+    .map(k => `${rawEncode(rawEncode(k))}%3D${rawEncode(rawEncode(params[k]!))}`)
     .join('%26')
 
   const stringToSign = `${method}&${rawEncode(url)}&${normalized}`

@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import type { CatalogProduct } from '#shared/types/catalog'
+import { formatPrice as money } from '#shared/utils/format'
 
 /** Carte produit, partagée entre la page catégorie, la recherche et le carrousel. */
-defineProps<{ product: CatalogProduct }>()
+const props = defineProps<{ product: CatalogProduct }>()
 
+const { add } = useCart()
 const broken = ref(false)
-const money = (value: number) => `${value.toFixed(2).replace('.', ',')} $`
+
+/**
+ * Un produit à déclinaisons se choisit sur sa fiche : l'ajouter d'ici
+ * reviendrait à commander une variation au hasard.
+ */
+const needsChoice = computed(() => props.product.variable || props.product.purchasable === false)
 </script>
 
 <template>
@@ -71,11 +78,21 @@ const money = (value: number) => `${value.toFixed(2).replace('.', ',')} $`
           {{ money(product.price) }}
         </p>
 
+        <NuxtLink
+          v-if="product.inStock && needsChoice"
+          :to="`/produits/${product.slug}`"
+          class="btn-primary mt-4 w-full justify-center"
+        >
+          Choisir
+        </NuxtLink>
+
         <button
+          v-else
           type="button"
           class="mt-4 w-full justify-center"
           :class="product.inStock ? 'btn-primary' : 'btn-secondary'"
           :disabled="!product.inStock"
+          @click="product.inStock && add(product)"
         >
           <svg v-if="product.inStock" width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M3 4h2l1.6 9.2a1.5 1.5 0 0 0 1.5 1.3h6.9a1.5 1.5 0 0 0 1.5-1.2L18 7H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />

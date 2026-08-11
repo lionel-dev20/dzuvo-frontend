@@ -84,9 +84,149 @@ public/                     # Fichiers servis tels quels (images, favicon, robot
 - **Validation** : une seule source dans [shared/utils/validation.ts](shared/utils/validation.ts),
   utilisée côté client pour l'affichage et rejouée côté serveur pour la sécurité.
 
+## Navigation — gérée dans WordPress
+
+Le menu principal ne vit plus dans le code. Il se saisit dans **Apparence > Menus**, à
+l'emplacement **« DZUVO — navigation principale »**.
+
+Trois pièces le rendent possible :
+
+| Où | Quoi |
+| --- | --- |
+| `wp-config.php`, bloc « DZUVO — menus headless » | Déclare les emplacements et expose le menu en lecture publique |
+| [server/api/navigation.get.ts](server/api/navigation.get.ts) | Le lit et le met en cache |
+| [app/components/layout/MegaMenu.vue](app/components/layout/MegaMenu.vue) | Le méga-menu du header |
+
+**Pourquoi du code côté WordPress.** Les routes natives `/wp/v2/menus` exigent une
+session d'administration : un site public ne peut pas les lire. Et surtout, les
+permaliens WordPress ne sont pas les routes du front — le bloc traduit donc chaque
+entrée (`/categorie-produit/x` → `/categories/x`, page Boutique → `/categories`,
+Panier → `/panier`). Sans cette traduction, un menu correctement rempli enverrait les
+visiteurs sur des pages inexistantes.
+
+**Ce code est un montage temporaire.** Il vit en fin de `wp-config.php`, après
+`require_once ABSPATH . 'wp-settings.php'` — seul endroit du fichier où WordPress est
+chargé, et où `rest_api_init` n'est pas encore passé. Sa place définitive est
+l'extension `wp-content/mu-plugins/dzuvo-headless-menus.php.disabled`, mise de côté
+pour éviter une double déclaration : `wp-config.php` n'est pas versionné avec le thème,
+échappe aux outils de développement, et la moindre erreur de syntaxe y rend le site
+entièrement inaccessible, administration comprise. Le retour se fait en supprimant le
+bloc et en retirant le suffixe « .disabled ».
+
+**Aucun lien de secours.** Si l'emplacement est vide ou WordPress muet, la navigation
+est vide et l'anomalie se voit — l'échec est mis en cache 15 secondes seulement, contre
+5 minutes pour un menu servi. Afficher des rubriques de démonstration masquerait la
+panne derrière des liens menant à des pages inexistantes.
+
+**À savoir.** Les trois pages pré-générées (`/`, `/connexion`, `/inscription`) figent les
+libellés du menu au moment du build : une modification dans WordPress y apparaîtra au
+prochain `npm run build`. Toutes les autres pages sont rendues à la demande et l'affichent
+immédiatement (cache serveur de 5 minutes).
+
+### Transition entre les pages — à ne pas repasser en `out-in`
+
+`app.pageTransition` est volontairement **sans `mode: 'out-in'`**. Avec ce mode, quitter
+l'accueil laissait un `<main>` vide : la page demandée n'était jamais insérée et seul un
+rechargement l'affichait. `out-in` refuse de monter la page entrante avant la fin de la
+sortie, ce qui se heurte au `<Suspense>` que Nuxt place autour de chaque page et aux pages
+qui attendent leurs données. C'est une course, pas une page fautive : seul le départ de
+l'accueil — la page la plus lourde — la perdait, et chaque moitié de cette page passait
+isolément.
+
+En contrepartie les deux pages se croisent 220 ms ; `.page-leave-active` sort la page
+quittée du flux dans [app/assets/css/base.css](app/assets/css/base.css), sans quoi elles
+s'empileraient le temps du fondu.
+
+## Panier et commande
+
+Le navigateur ne mémorise **que des identifiants et des quantités**, dans le cookie
+`dzuvo_cart` (30 jours). Prix, stocks, remises et total sont recalculés à chaque
+modification par [server/api/cart/index.post.ts](server/api/cart/index.post.ts) à partir de
+WooCommerce : un panier trafiqué côté client ne peut pas fausser un montant, et un panier
+laissé de côté n'affiche jamais un prix périmé.
+
+| Élément | Rôle |
+| --- | --- |
+| [app/composables/useCart.ts](app/composables/useCart.ts) | État client : ajout, quantités, code avantage, tiroir |
+| [server/utils/cart.ts](server/utils/cart.ts) | Calcul des lignes, des totaux et des règles de coupon |
+| `POST /api/cart` | Résout le panier et renvoie l'état faisant foi |
+| `GET /api/catalog/recommendations` | Ventes croisées du produit, complétées par sa rubrique |
+
+### Villes desservies et quartiers
+
+Une seule liste, [shared/config/cities.ts](shared/config/cities.ts), alimente **tout** ce
+qui parle de villes : le sélecteur du header, la carte de livraison de l'accueil, le
+formulaire de commande et sa validation — côté navigateur comme côté serveur. Ajouter une
+ville, c'est éditer ce fichier, et rien d'autre.
+
+Elle vit dans `shared/` parce que le serveur en a besoin : c'est lui qui rejoue la
+validation de l'adresse, et il ne peut pas vérifier un quartier s'il ignore la liste.
+
+Trois conséquences dans le tunnel de commande :
+
+- la ville retenue dans le header est **proposée par défaut**, sans jamais écraser une
+  saisie en cours ;
+- les quartiers proposés sont **ceux de cette ville**, et changer de ville remet le
+  quartier à zéro — un quartier d'ailleurs n'a pas cours ;
+- la province **découle de la ville** : elle n'est plus demandée, seulement affichée.
+
+L'option « Autre ville » reste ouverte pour le reste du Canada : saisie libre, province à
+préciser, et pas de quartier — il n'y en a alors aucun à proposer, donc aucun à exiger.
+WooCommerce n'ayant pas de champ « quartier », celui-ci rejoint la seconde ligne
+d'adresse, après l'appartement.
+
+### Commande et paiement
+
+Le tunnel vit sur `/commande` : coordonnées, adresse canadienne, mode de livraison, puis
+carte bancaire. Le visiteur ne quitte jamais le site.
+
+| Élément | Rôle |
+| --- | --- |
+| [app/pages/commande/index.vue](app/pages/commande/index.vue) | Le tunnel, en une page |
+| [app/composables/useCheckout.ts](app/composables/useCheckout.ts) | État du formulaire, livraison, ouverture du paiement |
+| [app/components/checkout/CardPayment.vue](app/components/checkout/CardPayment.vue) | Champs de carte Stripe, habillés à la charte |
+| `GET /api/checkout/shipping` | Méthodes issues des zones WooCommerce |
+| `POST /api/checkout/session` | Crée la commande, arrête le montant, ouvre le PaymentIntent |
+| `POST /api/checkout/confirm` | Revérifie le paiement auprès de Stripe et encaisse |
+| `POST /api/stripe/webhook` | Même encaissement, pour qui ne revient jamais |
+
+**L'ordre des opérations protège le montant.** Le panier est revalidé, WooCommerce crée la
+commande et calcule le total, et c'est **ce total-là** qui part chez Stripe. Au retour, le
+succès n'est jamais cru sur parole : le serveur redemande le PaymentIntent à Stripe et
+vérifie le montant au centime près ainsi que la clé de commande.
+
+Le numéro de carte n'atteint jamais ce site : il est saisi dans une iframe Stripe
+(Elements), ce qui maintient le projet en périmètre PCI SAQ-A. `stripe` est la seule
+dépendance ajoutée — côté serveur uniquement, et sans dépendance transitive.
+
+Le paiement est monté en **mode différé** : les champs de carte existent avant qu'aucune
+commande ne soit créée, si bien qu'un panier abandonné ne laisse pas de commande fantôme.
+
+Le **webhook n'est pas facultatif** : sans lui, un client qui paie puis ferme l'onglet
+laisse une commande en attente alors que l'argent est encaissé. En développement :
+`stripe listen --forward-to localhost:3000/api/stripe/webhook`.
+
+### Limites connues, assumées
+
+- Les **produits à déclinaisons** ne sont pas commandables tant qu'un sélecteur de
+  variation n'existe pas — le bouton est désactivé et l'explique.
+- Le carrousel de la page d'accueil s'alimente de
+  [app/config/products.ts](app/config/products.ts) : sans identifiant WooCommerce, son
+  bouton « Ajouter » ne peut pas être branché.
+- **Aucune taxe n'est calculée** : les taxes sont désactivées dans WooCommerce. Les activer
+  côté boutique suffit, le total de la commande en tiendra compte automatiquement.
+- **Aucune zone de livraison n'est configurée** : une méthode standard gratuite est servie
+  par défaut. Dès qu'une zone existe dans WooCommerce, ses tarifs prennent le relais.
+- Les **quartiers** ne sont pas des données WooCommerce : ils vivent dans
+  [shared/config/cities.ts](shared/config/cities.ts) et servent au bon de livraison, pas au
+  calcul du tarif. Une zone de livraison par quartier supposerait de les déclarer côté
+  boutique.
+
 ## Pour démarrer le contenu
 
-1. Renseigner [app/config/site.ts](app/config/site.ts) et [app/config/navigation.ts](app/config/navigation.ts).
+1. Renseigner [app/config/site.ts](app/config/site.ts). Le menu principal, lui, se saisit
+   dans WordPress (voir plus haut) ; [app/config/footer.ts](app/config/footer.ts) tient
+   encore les colonnes du pied de page, dont plusieurs liens n'ont pas de page.
 2. Remplir les pages de [app/pages/](app/pages/) en assemblant les composants de `sections/`.
 3. Brancher la source de contenu : `app/data/` en local, ou `useAsyncData` vers un CMS
    (Sanity, Nuxt Content, Strapi) pour les services, réalisations et articles.

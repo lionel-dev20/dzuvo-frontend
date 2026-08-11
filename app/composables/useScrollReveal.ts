@@ -19,6 +19,13 @@ export function useScrollReveal(
    */
   const { y = 56, stagger = 0.09, start = 'top 85%' } = options
 
+  /* Le nettoyage est déclaré ici, pendant `setup`. Le placer dans le corps de
+     `onMounted` ne marcherait pas : après le premier `await`, Vue n'a plus
+     d'instance active et l'enregistrement serait perdu — les animations d'une
+     page quittée survivraient alors à sa disparition. */
+  let context: { revert: () => void } | undefined
+  onBeforeUnmount(() => context?.revert())
+
   onMounted(async () => {
     if (!root.value) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -27,7 +34,7 @@ export function useScrollReveal(
     const { ScrollTrigger } = await import('gsap/ScrollTrigger')
     gsap.registerPlugin(ScrollTrigger)
 
-    const context = gsap.context(() => {
+    context = gsap.context(() => {
       // Chaque groupe s'anime indépendamment : les cartes du bas ne partent pas
       // avant d'être approchées.
       gsap.utils.toArray<HTMLElement>('[data-reveal-group]').forEach((group) => {
@@ -46,12 +53,16 @@ export function useScrollReveal(
       })
     }, root.value)
 
+    /* Les points de déclenchement sont figés à la création, y compris ceux des
+       blocs permanents comme le pied de page. Après une navigation côté client,
+       la page a changé de hauteur : sans ce recalcul, des blocs pourtant à
+       l'écran resteraient masqués jusqu'au prochain rechargement. */
+    ScrollTrigger.refresh()
+
     // Les images en chargement différé rallongent la page : sans ce recalcul,
     // les points de déclenchement restent calés sur une hauteur périmée.
     if (document.readyState !== 'complete') {
       window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true })
     }
-
-    onBeforeUnmount(() => context.revert())
   })
 }

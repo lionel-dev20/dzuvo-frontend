@@ -1,4 +1,4 @@
-import { deliveryCities, fallbackCity } from '~/config/cities'
+import { deliveryCities, fallbackCity } from '#shared/config/cities'
 
 const STORAGE_KEY = 'dzuvo-city'
 

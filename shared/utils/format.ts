@@ -12,6 +12,19 @@ export function formatCurrency(value: number, currency = 'EUR', locale = 'fr-FR'
   return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 0 }).format(value)
 }
 
+/**
+ * Prix de la boutique : « 64,99 $ ». Convention canadienne-française, symbole
+ * après le montant, deux décimales toujours affichées.
+ */
+export function formatPrice(value: number): string {
+  return `${value.toFixed(2).replace('.', ',')} $`
+}
+
+/** Arrondi monétaire : évite les 19,999999 999 des additions en virgule flottante. */
+export function roundMoney(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100
+}
+
 /** Transforme un titre en slug d'URL : « Design & UX » → « design-ux ». */
 export function slugify(value: string): string {
   return value

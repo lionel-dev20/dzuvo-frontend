@@ -69,6 +69,22 @@
   transform: translateY(8px);
 }
 
+/*
+ * Les deux pages se croisent pendant 220 ms. Sans cette règle, elles
+ * s'empileraient l'une sous l'autre le temps du fondu : la page doublerait de
+ * hauteur et le contenu sauterait. Sortie du flux, la page quittée se
+ * superpose à l'arrivante et disparaît sans rien déplacer.
+ */
+#main {
+  position: relative;
+}
+
+.page-leave-active {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
