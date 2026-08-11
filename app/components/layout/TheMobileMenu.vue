@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { headerCta, mainNavigation } from '~/config/navigation'
+import { headerCta } from '~/config/navigation'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
 const { locked } = useScrollLock()
 const { label: cityLabel, detectLabel, city, cities, select, detect } = useCitySelector()
-const categoriesOpen = ref(false)
+const { items: navigation } = useNavigation()
+
+/* Le menu WordPress peut compter plusieurs rubriques à sous-menu : on retient
+   celle qui est dépliée, plutôt qu'un unique booléen « catégories ». */
+const expanded = ref<string | null>(null)
 const cityOpen = ref(false)
 
 function selectCity(name: string) {
@@ -19,7 +23,7 @@ const drawerLink = 'rounded-btn px-3.5 py-3 text-[15px] font-medium uppercase un
 watch(() => props.open, (open) => {
   locked.value = open
   if (!open) {
-    categoriesOpen.value = false
+    expanded.value = null
     cityOpen.value = false
   }
 })
@@ -113,31 +117,42 @@ onMounted(() => {
         </div>
 
         <nav class="flex flex-1 flex-col overflow-y-auto p-2" aria-label="Menu mobile">
-          <template v-for="item in mainNavigation" :key="item.to">
+          <template v-for="item in navigation" :key="item.to">
             <template v-if="item.children?.length">
               <button
                 class="flex items-center justify-between text-left text-tertiary-500"
                 :class="drawerLink"
                 type="button"
-                :aria-expanded="categoriesOpen"
-                @click="categoriesOpen = !categoriesOpen"
+                :aria-expanded="expanded === item.to"
+                @click="expanded = expanded === item.to ? null : item.to"
               >
                 {{ item.label }}
                 <svg
                   class="transition-transform"
-                  :class="categoriesOpen ? 'rotate-180' : ''"
+                  :class="expanded === item.to ? 'rotate-180' : ''"
                   width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"
                 >
                   <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
                 </svg>
               </button>
 
-              <div v-if="categoriesOpen" class="flex flex-col pl-3">
+              <div v-if="expanded === item.to" class="flex flex-col pl-3">
+                <!-- La rubrique elle-même reste atteignable, pas seulement ses enfants. -->
+                <NuxtLink
+                  :to="item.to"
+                  class="rounded-btn px-3.5 py-2.5 text-sm font-bold text-secondary transition-colors hover:bg-tertiary-500/6"
+                  @click="emit('close')"
+                >
+                  Tout voir
+                </NuxtLink>
+
                 <NuxtLink
                   v-for="category in item.children"
                   :key="category.to"
                   :to="category.to"
                   class="rounded-btn px-3.5 py-2.5 text-sm text-tertiary-800 transition-colors hover:bg-tertiary-500/6 hover:text-secondary"
+                  :target="category.external ? '_blank' : undefined"
+                  :rel="category.external ? 'noopener' : undefined"
                   @click="emit('close')"
                 >
                   {{ category.label }}
@@ -149,6 +164,8 @@ onMounted(() => {
               v-else
               :to="item.to"
               :class="[drawerLink, 'text-tertiary-500 [&.router-link-exact-active]:text-tertiary-50 [&.router-link-exact-active]:underline [&.router-link-exact-active]:decoration-tertiary-50']"
+              :target="item.external ? '_blank' : undefined"
+              :rel="item.external ? 'noopener' : undefined"
               @click="emit('close')"
             >
               {{ item.label }}

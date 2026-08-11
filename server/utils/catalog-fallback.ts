@@ -184,3 +184,23 @@ export function fallbackProducts(query: ProductQuery = {}) {
 export function fallbackProductBySlug(slug: string) {
   return catalog.products.find(p => p.slug === slug) ?? null
 }
+
+/** Résolution du panier hors WooCommerce : mêmes identifiants, mêmes prix. */
+export function fallbackProductsByIds(ids: number[]): CatalogProduct[] {
+  const wanted = new Set(ids)
+  return catalog.products.filter(p => wanted.has(p.id))
+}
+
+/** Suggestions de démonstration : même rubrique, produit courant exclu. */
+export function fallbackCrossSells(productId: number): { items: CatalogProduct[], category?: string } {
+  const source = catalog.products.find(p => p.id === productId)
+  if (!source) return { items: [] }
+
+  const category = source.categories[0]?.slug
+  return {
+    items: catalog.products
+      .filter(p => p.id !== productId && p.categories.some(c => c.slug === category))
+      .slice(0, 6),
+    category,
+  }
+}

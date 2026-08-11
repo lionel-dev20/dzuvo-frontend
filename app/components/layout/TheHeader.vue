@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { headerCta, mainNavigation } from '~/config/navigation'
+import { headerCta } from '~/config/navigation'
 
 const { label: cityLabel, detectLabel, city, cities, select, detect } = useCitySelector()
+/** La navigation vient de WordPress ; le méga-menu gère son propre panneau. */
+const { items: navigation } = useNavigation()
 
-/** Un seul panneau déroulant ouvert à la fois. */
-const openMenu = ref<'city' | 'categories' | null>(null)
+/** Sélecteur de ville : le seul panneau que le header pilote encore. */
+const openMenu = ref<'city' | null>(null)
 const searchOpen = ref(false)
 const menuOpen = ref(false)
 const scrolled = ref(false)
 
-/** À brancher sur le panier réel ; le badge se masque à zéro. */
-const cartCount = useState('dzuvo:cart-count', () => 0)
+/** Compteur du panier ; le badge se masque à zéro. */
+const { count: cartCount } = useCart()
 
 const desktopSearch = useTemplateRef<HTMLInputElement>('desktopSearch')
 const mobileSearch = useTemplateRef<HTMLInputElement>('mobileSearch')
@@ -19,14 +21,11 @@ const mobileSearch = useTemplateRef<HTMLInputElement>('mobileSearch')
 /* Icône au-dessus, libellé en dessous : l'intitulé lève l'ambiguïté du pictogramme. */
 const iconButton = 'flex min-w-[54px] flex-col items-center gap-1 rounded-btn px-2 py-1.5 text-tertiary-500 transition-colors hover:bg-tertiary-500/8 hover:text-secondary'
 const iconLabel = 'text-[11px] leading-none font-medium'
-/* L'état actif se signale par un soulignement blanc, sans couleur d'accent. */
-const navLink = 'rounded-btn px-3 py-2 text-[15px] font-medium uppercase underline-offset-8 decoration-2 transition-colors'
-const navLinkStates = 'text-tertiary-500 hover:bg-tertiary-500/6 [&.router-link-exact-active]:text-tertiary-50 [&.router-link-exact-active]:underline [&.router-link-exact-active]:decoration-tertiary-50'
 const panel = 'absolute top-[calc(100%+10px)] z-70 rounded-xl border border-tertiary-500/12 bg-primary shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
 const searchBox = 'flex items-center gap-2 rounded-btn border border-tertiary-500/18 bg-tertiary-500/6 px-3.5 py-2'
 const badge = 'absolute -top-1.5 -right-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-secondary px-1 text-[11px] leading-none font-bold text-tertiary-50'
 
-function toggleMenu(menu: 'city' | 'categories') {
+function toggleMenu(menu: 'city') {
   openMenu.value = openMenu.value === menu ? null : menu
 }
 
@@ -148,57 +147,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Navigation principale (desktop) -->
-      <nav class="hidden items-center gap-0.5 nav:flex" aria-label="Navigation principale">
-        <template v-for="item in mainNavigation" :key="item.to">
-          <div v-if="item.children?.length" class="relative" data-dropdown>
-            <button
-              class="flex items-center gap-1.5"
-              :class="[navLink, openMenu === 'categories' ? 'bg-tertiary-500/8 text-tertiary-50' : navLinkStates]"
-              type="button"
-              aria-haspopup="true"
-              :aria-expanded="openMenu === 'categories'"
-              aria-controls="categories-panel"
-              @click="toggleMenu('categories')"
-            >
-              {{ item.label }}
-              <svg
-                class="transition-transform"
-                :class="openMenu === 'categories' ? 'rotate-180' : ''"
-                width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"
-              >
-                <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-              </svg>
-            </button>
-
-            <div
-              v-if="openMenu === 'categories'"
-              id="categories-panel"
-              class="-right-3 grid grid-cols-3 gap-x-5 gap-y-1 p-5"
-              :class="panel"
-            >
-              <NuxtLink
-                v-for="category in item.children"
-                :key="category.to"
-                class="flex w-[200px] flex-col gap-0.5 rounded-lg px-3 text-uppercase text-base py-2.5 transition-colors hover:bg-tertiary-500/6"
-                :to="category.to"
-                @click="openMenu = null"
-              >
-                <span class="text-[15px] font-medium text-tertiary-500">{{ category.label }}</span>
-                <span class="text-[13px] leading-snug text-tertiary-800">{{ category.description }}</span>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <NuxtLink
-            v-else
-            :to="item.to"
-            :class="[navLink, navLinkStates]"
-          >
-            {{ item.label }}
-          </NuxtLink>
-        </template>
-      </nav>
+      <!-- Navigation principale (desktop) — alimentée par WordPress. -->
+      <MegaMenu :items="navigation" />
 
       <!-- Actions (desktop) -->
       <div class="ml-auto hidden shrink-0 items-center gap-2 nav:flex">
@@ -239,14 +189,18 @@ onMounted(() => {
           <span :class="iconLabel">Compte</span>
         </NuxtLink>
 
-        <NuxtLink to="/panier" :class="iconButton" :aria-label="`Panier, ${cartCount} article(s)`">
+        <NuxtLink to="/panier" :class="iconButton" aria-label="Panier">
           <span class="relative">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M3 4h2l1.6 9.2a1.5 1.5 0 001.5 1.3h6.9a1.5 1.5 0 001.5-1.2L18 7H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
               <circle cx="8.5" cy="17.5" r="1.2" fill="currentColor" />
               <circle cx="15" cy="17.5" r="1.2" fill="currentColor" />
             </svg>
-            <span v-if="cartCount > 0" :class="badge">{{ cartCount }}</span>
+            <!-- Le panier vient d'un cookie : rendu au client, sinon les pages
+                 pré-générées afficheraient un compteur figé à la compilation. -->
+            <ClientOnly>
+              <span v-if="cartCount > 0" :class="badge" :aria-label="`${cartCount} article(s)`">{{ cartCount }}</span>
+            </ClientOnly>
           </span>
           <span :class="iconLabel">Panier</span>
         </NuxtLink>
@@ -274,14 +228,18 @@ onMounted(() => {
           <span :class="iconLabel">Rechercher</span>
         </button>
 
-        <NuxtLink to="/panier" :class="iconButton" :aria-label="`Panier, ${cartCount} article(s)`">
+        <NuxtLink to="/panier" :class="iconButton" aria-label="Panier">
           <span class="relative">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M3 4h2l1.6 9.2a1.5 1.5 0 001.5 1.3h6.9a1.5 1.5 0 001.5-1.2L18 7H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
               <circle cx="8.5" cy="17.5" r="1.2" fill="currentColor" />
               <circle cx="15" cy="17.5" r="1.2" fill="currentColor" />
             </svg>
-            <span v-if="cartCount > 0" :class="badge">{{ cartCount }}</span>
+            <!-- Le panier vient d'un cookie : rendu au client, sinon les pages
+                 pré-générées afficheraient un compteur figé à la compilation. -->
+            <ClientOnly>
+              <span v-if="cartCount > 0" :class="badge" :aria-label="`${cartCount} article(s)`">{{ cartCount }}</span>
+            </ClientOnly>
           </span>
           <span :class="iconLabel">Panier</span>
         </NuxtLink>

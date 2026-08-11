@@ -32,14 +32,39 @@ export default defineNuxtConfig({
     wooBaseUrl: '', // NUXT_WOO_BASE_URL — ex. https://boutique.dzuvo.ca
     wooConsumerKey: '', // NUXT_WOO_CONSUMER_KEY
     wooConsumerSecret: '', // NUXT_WOO_CONSUMER_SECRET
+
+    // Stripe. La clé secrète encaisse : elle ne quitte jamais le serveur.
+    // Le numéro de carte, lui, part du navigateur directement chez Stripe
+    // (Elements) — il ne transite jamais par ce site.
+    stripeSecretKey: '', // NUXT_STRIPE_SECRET_KEY — sk_test_… puis sk_live_…
+    stripeWebhookSecret: '', // NUXT_STRIPE_WEBHOOK_SECRET — whsec_…
+    /** Hôte de l'API Stripe. À ne surcharger que pour tester contre un double. */
+    stripeApiHost: '', // NUXT_STRIPE_API_HOST
     public: {
       siteUrl: '', // NUXT_PUBLIC_SITE_URL
       analyticsId: '', // NUXT_PUBLIC_ANALYTICS_ID
+      stripePublishableKey: '', // NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY — pk_test_…
     },
   },
 
   app: {
-    pageTransition: { name: 'page', mode: 'out-in' },
+    /*
+     * Transition de page SANS `mode: 'out-in'`.
+     *
+     * Avec `out-in`, quitter l'accueil laissait un <main> vide : la page
+     * demandée n'était jamais insérée, et seul un rechargement l'affichait.
+     * En cause, la rencontre de trois choses : le <Suspense> que Nuxt place
+     * autour de chaque page, des pages qui attendent leurs données, et
+     * `out-in` qui exige la fin de la sortie avant de monter l'entrée. Le
+     * défaut ne se déclenchait qu'au départ de l'accueil, la page la plus
+     * lourde du site — c'est une course, pas une section fautive : chaque
+     * moitié de la page d'accueil passait, la page entière échouait.
+     *
+     * En mode simultané, l'entrée ne dépend plus de la sortie. Les deux pages
+     * se croisent 220 ms ; la CSS sort la page quittée du flux pour éviter
+     * qu'elles s'empilent.
+     */
+    pageTransition: { name: 'page' },
     head: {
       meta: [
         { charset: 'utf-8' },
@@ -66,6 +91,8 @@ export default defineNuxtConfig({
       // Routes liées depuis la home dont la page reste à écrire.
       ignore: [
         '/nouveautes', '/promos', '/compte', '/panier', '/mot-de-passe-oublie',
+        // Tunnel de commande : dépend du panier du visiteur, jamais figé.
+        '/commande', '/commande/confirmation',
         '/professionnels', '/contact', '/blog',
         // Catalogue : servi en SSR. Prix, stocks et rubriques viennent de
         // WooCommerce et changent sans rebuild — les figer les périmerait.

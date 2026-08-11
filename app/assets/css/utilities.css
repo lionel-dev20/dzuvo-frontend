@@ -31,6 +31,18 @@
     background-color: var(--color-secondary-active);
     color: var(--color-tertiary-50);
   }
+
+  /* Un bouton indisponible doit se voir : sans cela, le clic sans effet passe
+     pour une panne. Le survol est neutralisé, sinon il promettrait l'inverse. */
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: var(--color-secondary);
+      color: var(--color-tertiary-50);
+    }
+  }
 }
 
 /*
@@ -61,6 +73,16 @@
     background-color: var(--color-primary-light-active);
     border-color: var(--color-primary-light-active);
     color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: transparent;
+      color: var(--color-tertiary-50);
+    }
   }
 }
 

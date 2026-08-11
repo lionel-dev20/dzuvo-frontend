@@ -38,6 +38,15 @@ export interface CatalogProduct {
   onSale: boolean
   inStock: boolean
   stockLabel: string
+  /**
+   * Un produit à déclinaisons ne s'ajoute pas au panier tel quel : il faut
+   * d'abord choisir une variation sur la fiche.
+   */
+  variable?: boolean
+  /** Faux pour un produit externe ou sans prix : le bouton d'ajout se retire. */
+  purchasable?: boolean
+  /** Plafond de commande, seulement si le stock est géré dans WooCommerce. */
+  stockQuantity?: number
   images: ProductImage[]
   categories: { slug: string, name: string }[]
   rating: number

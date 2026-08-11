@@ -15,5 +15,8 @@ useOrganizationSchema()
       <slot />
     </main>
     <TheFooter />
+
+    <!-- Confirmation d'ajout au panier : disponible depuis n'importe quelle page. -->
+    <CartDrawer />
   </div>
 </template>

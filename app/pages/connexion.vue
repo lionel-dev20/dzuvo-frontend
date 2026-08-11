@@ -134,7 +134,7 @@ useSeo({
             <span>Rester connecté</span>
           </label>
 
-          <button type="submit" class="btn-primary justify-center" :disabled="status === 'pending'">
+          <button type="submit" class="btn-primary cursor-pointer justify-center" :disabled="status === 'pending'">
             {{ status === 'pending' ? 'Connexion…' : 'Se connecter' }}
             <svg v-if="status !== 'pending'" width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
               <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -163,7 +163,7 @@ useSeo({
           </li>
         </ul>
 
-        <NuxtLink to="/inscription" class="btn-secondary mt-auto justify-center pt-3">
+        <NuxtLink to="/inscription" class="btn-secondary cursor-pointer mt-auto justify-center pt-3">
           Créer mon compte
           <svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
             <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
