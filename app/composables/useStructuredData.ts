@@ -30,6 +30,10 @@ export function useOrganizationSchema() {
 }
 
 export function useBreadcrumbSchema(items: { name: string, path: string }[]) {
+  // Sans URL de site, les `item` seraient des chemins relatifs : schema.org
+  // les attend absolus, autant ne rien publier.
+  if (!siteConfig.url) return
+
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

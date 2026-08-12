@@ -93,7 +93,7 @@ export default defineNuxtConfig({
         '/nouveautes', '/promos', '/compte', '/panier', '/mot-de-passe-oublie',
         // Tunnel de commande : dépend du panier du visiteur, jamais figé.
         '/commande', '/commande/confirmation',
-        '/professionnels', '/contact', '/blog',
+        '/professionnels', '/blog',
         // Catalogue : servi en SSR. Prix, stocks et rubriques viennent de
         // WooCommerce et changent sans rebuild — les figer les périmerait.
         '/produits', '/categories',
