@@ -93,7 +93,8 @@ Trois pièces le rendent possible :
 
 | Où | Quoi |
 | --- | --- |
-| `wp-config.php`, bloc « DZUVO — menus headless » | Déclare les emplacements et expose le menu en lecture publique |
+| [wordpress/mu-plugins/dzuvo-headless-menus.php](wordpress/mu-plugins/dzuvo-headless-menus.php) | Déclare les emplacements et expose le menu en lecture publique — **à déposer sur chaque WordPress** ([mode d'emploi](wordpress/README.md)) |
+| `wp-config.php`, bloc « DZUVO — menus headless » | La même chose, en montage temporaire sur l'installation MAMP locale |
 | [server/api/navigation.get.ts](server/api/navigation.get.ts) | Le lit et le met en cache |
 | [app/components/layout/MegaMenu.vue](app/components/layout/MegaMenu.vue) | Le méga-menu du header |
 
@@ -117,6 +118,20 @@ bloc et en retirant le suffixe « .disabled ».
 est vide et l'anomalie se voit — l'échec est mis en cache 15 secondes seulement, contre
 5 minutes pour un menu servi. Afficher des rubriques de démonstration masquerait la
 panne derrière des liens menant à des pages inexistantes.
+
+**Mise en ligne.** Le menu ne s'active pas tout seul sur un nouveau serveur : trois
+choses doivent y être réunies, et l'absence de n'importe laquelle donne le même
+symptôme — une navigation vide, sans message d'erreur.
+
+1. Le fichier [wordpress/mu-plugins/dzuvo-headless-menus.php](wordpress/mu-plugins/dzuvo-headless-menus.php)
+   déposé dans `wp-content/mu-plugins/` du WordPress **en ligne** : `wp-config.php`
+   n'est pas versionné, le montage local ne suit aucun déploiement.
+2. `NUXT_WOO_BASE_URL` réglée sur ce WordPress-là. Elle vaut `http://localhost:8888/DZuvo`
+   en développement : laissée telle quelle, le serveur en ligne interroge sa propre
+   machine. Les clés `NUXT_WOO_CONSUMER_KEY` et `NUXT_WOO_CONSUMER_SECRET` sont
+   propres à chaque installation WooCommerce — celles du poste local n'y ouvrent rien.
+3. Un `npm run build` **après** les deux premiers points : la page d'accueil est
+   pré-générée, elle fige le menu au moment du build (voir ci-dessous).
 
 **À savoir.** Les trois pages pré-générées (`/`, `/connexion`, `/inscription`) figent les
 libellés du menu au moment du build : une modification dans WordPress y apparaîtra au
