@@ -8,7 +8,8 @@ useScrollReveal(root, { y: 40 })
 
 const brokenImages = reactive(new Set<string>())
 
-const banners = [
+/** Contenu livré avec le site, servant de repli. */
+const fallbackBanners = [
   {
     id: 'distributeurs',
     label: 'Pour les distributeurs',
@@ -24,6 +25,9 @@ const banners = [
     alt: 'Gamme de pièces et accessoires DZUVO',
   },
 ]
+
+const { list } = useHomeContent()
+const banners = list(content => content.banners, fallbackBanners)
 </script>
 
 <template>

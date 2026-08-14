@@ -6,7 +6,14 @@ import { deliveryCitiesMap, MAP_DOTS, MAP_HEIGHT, MAP_WIDTH } from '~/config/del
  * c'est celle que vise le visiteur, sinon elles défilent au hasard.
  */
 const ROTATION_MS = 2600
-const CLIENTS_TOTAL = 300
+
+// Titres et compteur réglés dans « Page d'accueil > Titres et textes ».
+const { text, count } = useHomeContent()
+const titleTop = text('mapTitleTop', 'Livraison programmée')
+const titleBottom = text('mapTitleBottom', 'D’une ville à l’autre, partout au Canada')
+const counterTitle = text('mapCounterTitle', 'Ils nous font confiance')
+const counterText = text('mapCounterText', 'Nous avons livré, ils ont testé et ont été satisfaits.')
+const clientsTotal = count('mapCounterValue', 300)
 
 const root = useTemplateRef<HTMLElement>('root')
 const counter = useTemplateRef<HTMLElement>('counter')
@@ -37,7 +44,7 @@ onMounted(async () => {
 
   // Le compteur ne s'élance qu'une fois le bloc atteint.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    clients.value = CLIENTS_TOTAL
+    clients.value = clientsTotal.value
     return
   }
 
@@ -48,7 +55,7 @@ onMounted(async () => {
   const context = gsap.context(() => {
     const compte = { valeur: 0 }
     gsap.to(compte, {
-      valeur: CLIENTS_TOTAL,
+      valeur: clientsTotal.value,
       duration: 2,
       ease: 'power2.out',
       onUpdate: () => { clients.value = Math.round(compte.valeur) },
@@ -65,8 +72,8 @@ onMounted(async () => {
     <div data-reveal-group class="p-4 md:p-8">
       <div data-reveal class="mx-auto mb-10 max-w-2xl text-center">
         <h2 class="text-h2 leading-tight font-bold text-balance lg:text-h2-lg">
-          <span class="text-tertiary-700">Livraison programmée</span><br>
-          <span class="text-tertiary-50">D’une ville à l’autre, partout au Canada</span>
+          <span class="text-tertiary-700">{{ titleTop }}</span><br>
+          <span class="text-tertiary-50">{{ titleBottom }}</span>
         </h2>
       </div>
 
@@ -124,10 +131,8 @@ onMounted(async () => {
           ref="counter"
           class="mt-6 rounded-2xl  p-6 lg:absolute lg:top-24 lg:right-12 lg:mt-0 lg:max-w-xs lg:-translate-y-1/2"
         >
-          <h3 class="text-5xl font-bold text-tertiary-50">Ils nous font confiance</h3>
-          <p class="mt-2 text-base text-pretty text-tertiary-800">
-            Nous avons livré, ils ont testé et ont été satisfaits.
-          </p>
+          <h3 class="text-5xl font-bold text-tertiary-50">{{ counterTitle }}</h3>
+          <p class="mt-2 text-base text-pretty text-tertiary-800">{{ counterText }}</p>
           <p class="mt-5 flex items-baseline gap-2">
             <span class="text-8xl leading-none font-bold text-secondary tabular-nums">+{{ clients }}</span>
             <span class="text-base font-medium text-tertiary-600">clients</span>

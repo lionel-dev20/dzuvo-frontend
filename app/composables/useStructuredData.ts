@@ -23,6 +23,7 @@ export function useOrganizationSchema() {
       'streetAddress': siteConfig.contact.address.street,
       'postalCode': siteConfig.contact.address.postalCode,
       'addressLocality': siteConfig.contact.address.city,
+      'addressRegion': siteConfig.contact.address.region,
       'addressCountry': siteConfig.contact.address.country,
     },
     'sameAs': siteConfig.social.map(s => s.href),

@@ -9,9 +9,24 @@ import { testimonialsBottom, testimonialsTop } from '~/config/testimonials'
 const root = useTemplateRef<HTMLElement>('root')
 useScrollReveal(root, { y: 40 })
 
+/* Avis publiés dans WordPress, ou ceux livrés avec le site. Les deux bandes
+   se replient ensemble : WordPress coupe sa liste en deux, et une seule bande
+   d'origine mêlée à une bande saisie donnerait des avis de provenances
+   différentes de part et d'autre. */
+const { list, text } = useHomeContent()
+const top = list(content => content.testimonials.top, testimonialsTop)
+const bottom = list(content => content.testimonials.bottom, testimonialsBottom)
+
+const titleTop = text('testimonialsTitleTop', 'Ce que disent nos clients')
+const titleBottom = text('testimonialsTitleBottom', 'd’un océan à l’autre')
+const intro = text(
+  'testimonialsIntro',
+  'Des milliers d’automobilistes équipent leur véhicule chez DZUVO. Voici ce qu’ils en retiennent.',
+)
+
 /** La piste porte les cartes en double : la boucle se referme sans saut. */
-const topTrack = [...testimonialsTop, ...testimonialsTop]
-const bottomTrack = [...testimonialsBottom, ...testimonialsBottom]
+const topTrack = computed(() => [...top.value, ...top.value])
+const bottomTrack = computed(() => [...bottom.value, ...bottom.value])
 
 const initials = (author: string) =>
   author.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()
@@ -26,13 +41,10 @@ const mask = 'overflow-hidden [mask-image:linear-gradient(to_right,transparent,b
     <div data-reveal-group>
       <div data-reveal class="mx-auto mb-10 max-w-2xl text-center">
         <h2 class="text-h2 leading-tight font-bold text-balance lg:text-h2-lg">
-          <span class="text-tertiary-700">Ce que disent nos clients</span><br>
-          <span class="text-tertiary-50">d’un océan à l’autre</span>
+          <span class="text-tertiary-700">{{ titleTop }}</span><br>
+          <span class="text-tertiary-50">{{ titleBottom }}</span>
         </h2>
-        <p class="mt-4 text-pretty text-tertiary-800">
-          Des milliers d’automobilistes équipent leur véhicule chez DZUVO.
-          Voici ce qu’ils en retiennent.
-        </p>
+        <p class="mt-4 text-pretty text-tertiary-800">{{ intro }}</p>
       </div>
 
       <!-- Bande du haut -->

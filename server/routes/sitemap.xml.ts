@@ -1,21 +1,17 @@
 import { siteConfig } from '../../app/config/site'
 
 /**
- * Sitemap XML. Les pages statiques sont listées ici ; les pages dynamiques
- * (services, réalisations, articles) sont à ajouter depuis la source de contenu.
+ * Sitemap XML.
+ *
+ * Seules les pages qui existent y figurent. Annoncer une adresse qui répond
+ * 404 n'attire pas le moteur de recherche : cela lui apprend seulement que ce
+ * plan de site n'est pas fiable. Les pages du squelette (services,
+ * réalisations, mentions légales…) y reviendront une fois écrites.
  */
 const staticRoutes: { path: string, priority: number }[] = [
   { path: '/', priority: 1 },
-  { path: '/services', priority: 0.9 },
-  { path: '/realisations', priority: 0.9 },
-  { path: '/a-propos', priority: 0.7 },
-  { path: '/blog', priority: 0.7 },
-  { path: '/carrieres', priority: 0.6 },
+  { path: '/categories', priority: 0.9 },
   { path: '/contact', priority: 0.8 },
-  { path: '/legal/mentions-legales', priority: 0.2 },
-  { path: '/legal/politique-de-confidentialite', priority: 0.2 },
-  { path: '/legal/conditions-generales', priority: 0.2 },
-  { path: '/legal/cookies', priority: 0.2 },
 ]
 
 export default defineEventHandler((event) => {

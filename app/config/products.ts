@@ -10,6 +10,14 @@ export interface Product {
   id: string
   name: string
   to: string
+  /**
+   * Identifiant WooCommerce, présent seulement sur les produits choisis dans
+   * WordPress. Sans lui, le bouton « Ajouter » n'a rien à mettre au panier —
+   * c'est la limite connue de cette liste de repli.
+   */
+  wooId?: number
+  /** Achetable en un clic : ni rupture, ni produit à déclinaisons. */
+  purchasable?: boolean
   image?: string
   /** « Promo », « Prix baissé »… Laisser vide pour ne rien afficher. */
   badge?: string

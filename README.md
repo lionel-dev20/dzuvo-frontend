@@ -152,6 +152,87 @@ En contrepartie les deux pages se croisent 220 ms ; `.page-leave-active` sort la
 quittée du flux dans [app/assets/css/base.css](app/assets/css/base.css), sans quoi elles
 s'empileraient le temps du fondu.
 
+## Page d'accueil — gérée dans WordPress
+
+Les neuf sections de l'accueil se saisissent dans l'administration, sous le menu
+**« Page d'accueil »**. L'extension vit dans
+[wordpress/mu-plugins/](wordpress/mu-plugins/) et se déploie en copiant
+`dzuvo-home.php` **et** le dossier `dzuvo-home/` dans `wp-content/mu-plugins/`
+du site WordPress. Aucune activation : les extensions « must-use » sont
+chargées d'office.
+
+| Écran | Ce qu'il pilote |
+| --- | --- |
+| Carrousel principal | Slides : titre, surtitre, sous-titre, visuel, boutons, saison |
+| Offres du moment | Les quatre cartes promotionnelles |
+| Panneaux larges | Les deux panneaux qui ferment les offres |
+| Bannières d'accès | Les deux grandes photos cliquables |
+| Témoignages | Les avis clients, répartis en deux bandes |
+| Produits mis en avant | La sélection WooCommerce du carrousel |
+| Titres et textes | Titres de section, engagements, vidéo, compteur |
+
+L'ordre d'affichage se règle **en glissant les lignes** dans les tableaux : la
+première ligne est la première slide, la première carte, le premier avis.
+
+### Trois principes
+
+**Le contenu livré avec le site reste, et sert de repli.** Les fichiers de
+[app/config/](app/config/) n'ont pas disparu : ils s'affichent tant qu'une
+section n'est pas saisie dans WordPress, et reprennent la main si WordPress est
+muet. Le repli se décide **section par section** — remplir le carrousel ne vide
+pas les témoignages. C'est aussi ce qui permet de reprendre la page
+progressivement. Une navigation vide se remarque et se répare ; une page
+d'accueil vide, elle, fait fuir le visiteur.
+
+**Un champ vide n'efface rien.** Dans « Titres et textes », un champ laissé
+vide veut dire « garder le texte d'origine », jamais « effacer ce titre ». On
+ne remplit donc que ce qu'on veut changer.
+
+**Les produits ne sont pas recopiés.** L'écran « Produits mis en avant » ne
+retient que des identifiants, dans un ordre. Nom, prix, promotion, note et
+stock sont lus par la couche catalogue du site — la même qui sert les fiches
+produit et le panier. Un prix ne peut donc pas différer d'une page à l'autre,
+et le bouton « Ajouter » du carrousel fonctionne enfin : les produits arrivent
+sous la forme que le panier sait accepter. Pour changer un prix, c'est la fiche
+WooCommerce qu'il faut modifier.
+
+### Le chemin des données
+
+| Où | Quoi |
+| --- | --- |
+| `wp-content/mu-plugins/dzuvo-home/` | Les écrans de saisie et `GET /wp-json/dzuvo/v1/home` |
+| [server/utils/wp-home.ts](server/utils/wp-home.ts) | Le lit et vérifie la forme reçue, champ par champ |
+| [server/api/home.get.ts](server/api/home.get.ts) | Le met en cache (5 min) et résout les produits |
+| [app/composables/useHomeContent.ts](app/composables/useHomeContent.ts) | Sert le contenu aux sections, repli compris |
+
+Rien de ce qui vient de WordPress n'est cru sur parole : ce contenu est saisi à
+la main, et une fiche à moitié remplie ne doit pas vider la page. Une slide sans
+titre, une bannière sans image, un avis sans texte sont écartés — ils
+disparaissent de leur section sans emporter le reste.
+
+Une seule requête sert les neuf sections, et la clé partagée du composable fait
+que Nuxt ne la joue qu'une fois par rendu.
+
+### L'accueil n'est plus figé au build
+
+C'est la contrepartie de tout ceci, et elle est volontaire : `/` n'est plus
+pré-rendue. Elle l'était, ce qui aurait imposé un `npm run build` après chaque
+correction de texte — autant ne pas avoir d'administration du tout.
+
+La règle `routeRules: { '/': { swr: 300 } }` dans
+[nuxt.config.ts](nuxt.config.ts) garde l'essentiel du pré-rendu : la page est
+servie depuis le cache, donc instantanément, et régénérée en arrière-plan passé
+le délai. Une modification paraît **au plus tard cinq minutes** après
+enregistrement, et le visiteur n'attend jamais WordPress.
+
+Deux conséquences à connaître :
+
+- le site a besoin d'un **serveur Node** (`.output/server`) ; un export
+  100 % statique (`nuxt generate`) figerait de nouveau l'accueil ;
+- l'accueil figure dans `prerender.ignore` sous la forme d'une expression
+  exacte (`/^\/$/`). Sans elle, le robot du pré-rendu la reprendrait en suivant
+  le logo des autres pages, et le fichier statique passerait devant la règle.
+
 ## Panier et commande
 
 Le navigateur ne mémorise **que des identifiants et des quantités**, dans le cookie
@@ -239,9 +320,14 @@ laisse une commande en attente alors que l'argent est encaissé. En développeme
 
 ## Pour démarrer le contenu
 
-1. Renseigner [app/config/site.ts](app/config/site.ts). Le menu principal, lui, se saisit
-   dans WordPress (voir plus haut) ; [app/config/footer.ts](app/config/footer.ts) tient
-   encore les colonnes du pied de page, dont plusieurs liens n'ont pas de page.
+1. [app/config/site.ts](app/config/site.ts) porte les informations de DZUVO Inc.
+   Restent à compléter : le NEQ (dès réception des documents d'incorporation),
+   l'hébergeur, les horaires et les réseaux sociaux. **Ce fichier part dans le
+   navigateur** : aucune donnée interne ne doit y figurer — l'adresse qui reçoit
+   les messages du formulaire se règle par `NUXT_CONTACT_RECIPIENT`, côté serveur.
+   Le menu principal et la page d'accueil, eux, se saisissent dans WordPress (voir
+   plus haut) ; [app/config/footer.ts](app/config/footer.ts) tient encore les
+   colonnes du pied de page, dont plusieurs liens n'ont pas de page.
 2. Remplir les pages de [app/pages/](app/pages/) en assemblant les composants de `sections/`.
 3. Brancher la source de contenu : `app/data/` en local, ou `useAsyncData` vers un CMS
    (Sanity, Nuxt Content, Strapi) pour les services, réalisations et articles.

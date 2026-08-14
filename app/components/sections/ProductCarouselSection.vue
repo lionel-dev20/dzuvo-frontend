@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { CarouselProduct } from '~/composables/useHomeContent'
 import { featuredProducts } from '~/config/products'
+import { toCarouselProduct } from '~/composables/useHomeContent'
 
 /**
  * Carrousel produits. Le défilement est natif (scroll horizontal + accroche) :
@@ -9,6 +11,40 @@ import { featuredProducts } from '~/config/products'
  * Il avance seul, et s'arrête dès que le visiteur s'y intéresse.
  */
 const AUTOPLAY_MS = 5000
+
+/*
+ * Produits choisis dans WordPress, résolus par la couche catalogue — donc
+ * ajoutables au panier. À défaut, la sélection livrée avec le site s'affiche,
+ * mais sans identifiant de boutique : son bouton ne peut que renvoyer vers la
+ * fiche produit.
+ */
+const { content, text } = useHomeContent()
+const { add } = useCart()
+
+const products = computed<CarouselProduct[]>(() =>
+  content.value.products.length
+    ? content.value.products.map(toCarouselProduct)
+    : featuredProducts,
+)
+
+const title = text('productsTitle', 'Nos produits du moment')
+
+/**
+ * Ajout au panier depuis le carrousel.
+ *
+ * Deux cas où l'ajout direct n'a pas de sens, et où l'on ouvre la fiche
+ * produit à la place : le produit vient de la sélection de secours, sans
+ * identifiant de boutique — il n'y a rien à mettre au panier ; ou c'est un
+ * produit à déclinaisons, dont la variation se choisit sur sa fiche.
+ */
+function addToCart(product: CarouselProduct) {
+  if (product.catalog && product.purchasable) {
+    add(product.catalog)
+    return
+  }
+
+  navigateTo(product.to)
+}
 const root = useTemplateRef<HTMLElement>('root')
 const track = useTemplateRef<HTMLElement>('track')
 useScrollReveal(root, { y: 40 })
@@ -89,7 +125,7 @@ const arrow = 'grid size-11 shrink-0 cursor-pointer place-items-center rounded-f
     <div data-reveal-group>
       <div data-reveal class="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2 class="text-h3 ">Nos produits du moment</h2>
+          <h2 class="text-h3 ">{{ title }}</h2>
           <span class="mt-3 block h-0.5 w-14 rounded-full bg-secondary" aria-hidden="true" />
         </div>
 
@@ -114,7 +150,7 @@ const arrow = 'grid size-11 shrink-0 cursor-pointer place-items-center rounded-f
         @scroll.passive="updateBounds"
       >
         <li
-          v-for="product in featuredProducts"
+          v-for="product in products"
           :key="product.id"
           data-reveal
           class="w-[calc(50%-0.5rem)] shrink-0 snap-start lg:w-[calc(25%-0.75rem)]"
@@ -182,9 +218,10 @@ const arrow = 'grid size-11 shrink-0 cursor-pointer place-items-center rounded-f
 
                 <button
                   type="button"
-                  class="mt-4 w-full justify-center"
+                  class="mt-4 w-full cursor-pointer justify-center"
                   :class="product.inStock ? 'btn-primary' : 'btn-secondary'"
                   :disabled="!product.inStock"
+                  @click="addToCart(product)"
                 >
                   <!-- En stock : panier filaire. Épuisé : cloche de rappel. -->
                   <svg v-if="product.inStock" width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">

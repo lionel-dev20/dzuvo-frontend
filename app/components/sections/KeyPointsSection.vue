@@ -1,22 +1,31 @@
 <script setup lang="ts">
-/** Bandeau de réassurance affiché sous le hero. */
-const points = [
+/**
+ * Bandeau de réassurance affiché sous le hero.
+ *
+ * Trois engagements, réglés dans « Page d'accueil > Titres et textes ». Leur
+ * nombre et leurs pictogrammes sont fixes : la grille est dessinée pour trois
+ * colonnes, et chaque icône illustre un propos précis — un quatrième
+ * engagement n'aurait aucun dessin à porter.
+ */
+const { text } = useHomeContent()
+
+const points = computed(() => [
   {
     id: 'compatibilite',
-    title: 'Compatible toutes marques',
-    description: 'Des pièces universelles conçues pour s’adapter à tous les véhicules.',
+    title: text('keyPoint1Title', 'Compatible toutes marques').value,
+    description: text('keyPoint1Text', 'Des pièces universelles conçues pour s’adapter à tous les véhicules.').value,
   },
   {
     id: 'livraison',
-    title: 'Livraison programmée',
-    description: 'D’une ville à l’autre au Canada, à la date convenue.',
+    title: text('keyPoint2Title', 'Livraison programmée').value,
+    description: text('keyPoint2Text', 'D’une ville à l’autre au Canada, à la date convenue.').value,
   },
   {
     id: 'garantie',
-    title: 'Garantie DZUVO',
-    description: 'Chaque produit est testé et couvert par notre garantie qualité.',
+    title: text('keyPoint3Title', 'Garantie DZUVO').value,
+    description: text('keyPoint3Text', 'Chaque produit est testé et couvert par notre garantie qualité.').value,
   },
-]
+])
 </script>
 
 <template>
