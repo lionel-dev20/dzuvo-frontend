@@ -4,20 +4,35 @@ import { categoryCards, categorySpotlights } from '~/config/featuredCategories'
 const root = useTemplateRef<HTMLElement>('root')
 useScrollReveal(root)
 
+/* Offres publiées dans WordPress, ou celles livrées avec le site. Les deux
+   listes sont indépendantes : saisir les cartes sans les panneaux garde les
+   panneaux d'origine. */
+const { list, text } = useHomeContent()
+const cards = list(content => content.offers, categoryCards)
+const spotlights = list(content => content.spotlights, categorySpotlights)
+const title = text('offersTitle', 'Nos offres du moment')
+
 /* Les visuels arrivent au fil de la production : une image absente laisse
    simplement sa zone vide, jamais une vignette cassée. */
 const brokenImages = reactive(new Set<string>())
 
 /* Préchargement pour détecter les images cassées des spotlights
-   (indispensable puisqu'on passe en background-image, donc plus d'événement @error natif). */
-onMounted(() => {
-  categorySpotlights.forEach((spotlight) => {
+   (indispensable puisqu'on passe en background-image, donc plus d'événement @error natif).
+   Rejoué si la liste change : les visuels de WordPress arrivent après l'hydratation. */
+watchEffect(() => {
+  if (import.meta.server) return
+
+  spotlights.value.forEach((spotlight) => {
     if (!spotlight.image) return
     const img = new Image()
     img.onerror = () => brokenImages.add(spotlight.id)
     img.src = spotlight.image
   })
 })
+
+/* Une offre sans lien reste cliquable vers le catalogue : la carte annonce une
+   promotion, l'envoyer nulle part serait pire que l'envoyer au rayon. */
+const linkOf = (item: { to?: string }) => item.to || '/categories'
 
 /* Habillage commun aux tuiles : surface surélevée sur le fond sombre. */
 const tile = 'group relative flex h-full flex-col overflow-hidden rounded-2xl bg-primary transition-transform duration-300 hover:z-10 hover:scale-105'
@@ -27,10 +42,10 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
 <template>
   <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="Nos meilleures catégories">
     <!-- Rangée 1 — quatre cartes catégorie (inchangée) -->
-    <h3 class="text-center pb-4 md:pb-12">Nos offres du moment</h3>
+    <h3 class="text-center pb-4 md:pb-12">{{ title }}</h3>
     <ul data-reveal-group class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <li v-for="card in categoryCards" :key="card.id" data-reveal>
-        <NuxtLink :to="card.to" :class="tile">
+      <li v-for="card in cards" :key="card.id" data-reveal>
+        <NuxtLink :to="linkOf(card)" :class="tile">
           <div class="relative aspect-4/3 overflow-hidden">
             <span
               v-if="card.badge"
@@ -83,8 +98,8 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
 
     <!-- Rangée 2 — deux panneaux larges, images en background -->
     <ul data-reveal-group class="mt-4 grid gap-4 lg:grid-cols-2">
-      <li v-for="spotlight in categorySpotlights" :key="spotlight.id" data-reveal>
-        <NuxtLink :to="spotlight.to" :class="[tile, 'min-h-[320px] md:min-h-[380px]']">
+      <li v-for="spotlight in spotlights" :key="spotlight.id" data-reveal>
+        <NuxtLink :to="linkOf(spotlight)" :class="[tile, 'min-h-[320px] md:min-h-[380px]']">
           <!-- Panneau photo : le texte se pose sur l'image -->
           <template v-if="spotlight.cover">
             <div

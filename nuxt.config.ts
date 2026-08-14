@@ -83,13 +83,44 @@ export default defineNuxtConfig({
     },
   },
 
+  /*
+   * La page d'accueil n'est plus figée au build.
+   *
+   * Son contenu se saisit désormais dans WordPress (extension « DZUVO — page
+   * d'accueil ») : la pré-rendre reviendrait à exiger un `npm run build` après
+   * chaque correction de texte, ce qui retirerait tout intérêt à
+   * l'administration.
+   *
+   * `swr` garde l'essentiel du pré-rendu : la page est servie depuis le cache,
+   * donc instantanément, et régénérée en arrière-plan passé le délai. Le
+   * visiteur n'attend jamais WordPress ; une modification paraît au plus tard
+   * cinq minutes après avoir été enregistrée.
+   *
+   * Corollaire : le site a besoin d'un serveur Node (`.output/server`).
+   * Un export 100 % statique (`nuxt generate`) figerait de nouveau l'accueil.
+   */
+  routeRules: {
+    '/': { swr: 300 },
+  },
+
   // Pré-rendu : pages instantanées et bon SEO sur un site majoritairement statique.
   nitro: {
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/sitemap.xml'],
-      // Routes liées depuis la home dont la page reste à écrire.
+      // L'accueil n'y figure plus (voir routeRules) : le pré-rendu part donc
+      // des pages fixes, qui ne dépendent d'aucun contenu éditorial.
+      routes: ['/contact', '/connexion', '/inscription', '/sitemap.xml'],
       ignore: [
+        /*
+         * L'accueil, atteint depuis le logo de chaque page pré-rendue. Sans
+         * cette exclusion, le robot le figerait malgré tout et le fichier
+         * statique passerait devant la règle `swr` — le contenu WordPress
+         * redeviendrait daté du build. L'expression exacte est indispensable :
+         * la chaîne « / » ferait correspondre toutes les routes.
+         */
+        /^\/$/,
+
+        // Routes liées depuis la home dont la page reste à écrire.
         '/nouveautes', '/promos', '/compte', '/panier', '/mot-de-passe-oublie',
         // Tunnel de commande : dépend du panier du visiteur, jamais figé.
         '/commande', '/commande/confirmation',

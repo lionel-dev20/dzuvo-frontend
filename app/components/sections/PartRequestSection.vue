@@ -17,20 +17,33 @@ const fieldError = 'border-secondary'
 const label = 'mb-2 block text-body font-medium text-tertiary-600'
 const errorText = 'mt-1.5 text-xs text-secondary'
 
-const shortcuts = [
+/*
+ * Titres, texte et raccourcis réglés dans « Page d'accueil > Titres et
+ * textes ». Les deux pictogrammes, eux, restent attachés à leur place :
+ * chacun illustre un propos précis, et il n'y a que deux encarts.
+ */
+const { text } = useHomeContent()
+
+const title = text('partRequestTitle', 'Trouver ma pièce ou mon accessoire')
+const intro = text(
+  'partRequestIntro',
+  'Vous êtes dans le besoin d’une pièce auto bien précise ? Nous la trouverons pour vous. Remplissez le formulaire pour une réponse dans les meilleurs délais.',
+)
+
+const shortcuts = computed(() => [
   {
     id: 'conseiller',
-    to: '/contact',
-    title: 'Parler à un conseiller',
-    note: 'du lundi au samedi',
+    to: text('partRequestShortcut1To', '/contact').value,
+    title: text('partRequestShortcut1Title', 'Parler à un conseiller').value,
+    note: text('partRequestShortcut1Note', 'du lundi au samedi').value,
   },
   {
     id: 'suivi',
-    to: '/compte',
-    title: 'Suivre ma commande',
-    note: 'livraison programmée',
+    to: text('partRequestShortcut2To', '/compte').value,
+    title: text('partRequestShortcut2Title', 'Suivre ma commande').value,
+    note: text('partRequestShortcut2Note', 'livraison programmée').value,
   },
-]
+])
 </script>
 
 <template>
@@ -38,14 +51,13 @@ const shortcuts = [
     <div data-reveal-group class="grid gap-4 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
       <!-- Bloc formulaire -->
       <div data-reveal class="rounded-lg bg-primary bg-opacity-2 border border-gray-900 p-6 md:p-8">
-        <h2 class="text-h3">Trouver ma pièce ou mon accessoire</h2>
+        <h2 class="text-h3">{{ title }}</h2>
 
         <form class="mt-7 grid gap-5 md:grid-cols-2" novalidate @submit.prevent="submit">
           <!-- Colonne 1 — la description de la pièce recherchée -->
           <div>
             <label class="text-left pb-3" :class="label" for="part-message">
-              Vous êtes dans le besoin d'une pièce auto bien precise? Nous la trouverons pour vous
-              n'hésitez pas, remplisser le formulaire pour une reponse dans les delais les plus rapide . 
+              {{ intro }}
             </label>
             <textarea
               id="part-message"

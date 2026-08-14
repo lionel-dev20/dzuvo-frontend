@@ -1,37 +1,16 @@
+import type { HomeOffer, HomeSpotlight } from '#shared/types/home'
+
 /**
  * Bloc de mise en avant de la page d'accueil : quatre cartes catégorie
  * puis deux panneaux larges. Visuels attendus dans public/images/categories/.
+ *
+ * Contenu livré avec le site, servant de repli : dès que des offres sont
+ * publiées dans WordPress, ce sont elles qui s'affichent. Les formes sont
+ * décrites une seule fois, dans `#shared/types/home` — les deux sources
+ * doivent rester interchangeables au champ près.
  */
-export interface CategoryCard {
-  id: string
-  to: string
-  /** Pastille en haut de carte : « Promo », « N° 1 des ventes »… */
-  badge?: string
-  image?: string
-  /** Bloc tarifaire, optionnel : une carte peut ne porter qu'une offre. */
-  fromLabel?: string
-  oldPrice?: string
-  discount?: string
-  price?: string
-  /** Accroche affichée en très gros à la place du prix. */
-  headline?: string
-  title: string
-  note?: string
-  fineprint?: string
-  until?: string
-}
-
-export interface CategorySpotlight {
-  id: string
-  to: string
-  ribbon?: string
-  title: string
-  subtitle?: string
-  note?: string
-  image?: string
-  /** Panneau photo plein cadre avec texte en surimpression. */
-  cover?: boolean
-}
+export type CategoryCard = HomeOffer
+export type CategorySpotlight = HomeSpotlight
 
 export const categoryCards: CategoryCard[] = [
   {

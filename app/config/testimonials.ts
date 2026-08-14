@@ -1,11 +1,10 @@
-/** Témoignages clients affichés en deux bandes défilantes. */
-export interface Testimonial {
-  id: string
-  quote: string
-  author: string
-  city: string
-  rating: number
-}
+import type { HomeTestimonial } from '#shared/types/home'
+
+/**
+ * Témoignages clients affichés en deux bandes défilantes — contenu livré avec
+ * le site, servant de repli tant qu'aucun avis n'est publié dans WordPress.
+ */
+export type Testimonial = HomeTestimonial
 
 /** Bande du haut : défile vers la gauche. */
 export const testimonialsTop: Testimonial[] = [

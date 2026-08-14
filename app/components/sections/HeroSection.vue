@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import type { HeroSlide } from '~/config/heroSlides'
-import { getHeroSlides } from '~/config/heroSlides'
+import { composeHeroSlides, fallbackSlides } from '~/config/heroSlides'
 
 const AUTOPLAY_MS = 7000
+
+// Slides publiées dans WordPress, ou celles livrées avec le site.
+const { list } = useHomeContent()
+const available = list(content => content.slides, fallbackSlides)
 
 /*
  * Rendu serveur : ordre canonique (hiver). La slide de marque ouvrant toujours
  * le carrousel, réordonner selon la saison réelle après hydratation ne produit
  * aucun saut visible.
  */
-const slides = ref<HeroSlide[]>(getHeroSlides(9))
+const month = ref(9)
+const slides = computed(() => composeHeroSlides(available.value, month.value))
 const index = ref(0)
 const paused = ref(false)
+
+/* Le carrousel peut rétrécir — une slide dépubliée, un repli qui prend la
+   main : sans ce recalage, la position courante pointerait dans le vide. */
+watch(() => slides.value.length, (total) => {
+  if (index.value >= total) index.value = 0
+})
 
 const activeSlide = computed(() => slides.value[index.value] ?? slides.value[0]!)
 // Tant qu'un visuel n'est pas livré, on affiche le halo plutôt qu'une image cassée.
@@ -44,7 +54,7 @@ const next = () => goTo(index.value + 1)
 watch(running, restart)
 
 onMounted(async () => {
-  slides.value = getHeroSlides(new Date().getMonth())
+  month.value = new Date().getMonth()
   restart()
 
   // L'autoplay ne tourne pas dans un onglet en arrière-plan.
@@ -121,7 +131,7 @@ function onLeave(element: Element, done: () => void) {
               {{ activeSlide.eyebrow }}
             </p>
 
-            <h1 v-if="activeSlide.id === 'marque'" data-anim class="mb-6 text-balance lg:text-hero">
+            <h1 v-if="activeSlide.season === 'brand'" data-anim class="mb-6 text-balance lg:text-hero">
               {{ activeSlide.title }}
             </h1>
             <p

@@ -7,8 +7,13 @@
  * La lecture démarre dès que la section entre dans le viewport et se met en
  * pause dès qu'elle en sort : rien ne tourne hors écran.
  */
-const VIDEO_SRC = '/videos/dzuvo-presentation.mp4'
 const PLAYBACK_RATE = 2
+
+// Fichier et accroche réglés dans « Page d'accueil > Titres et textes ».
+const { text } = useHomeContent()
+const videoSrc = text('videoSrc', '/videos/dzuvo-presentation.mp4')
+const videoTitle = text('videoTitle', 'Des pièces')
+const videoTitleAccent = text('videoTitleAccent', 'de confiance')
 
 const root = useTemplateRef<HTMLElement>('root')
 const frame = useTemplateRef<HTMLElement>('frame')
@@ -82,7 +87,7 @@ onMounted(async () => {
       <div class="absolute inset-0 flex flex-col items-center justify-center gap-6 p-6 text-center">
         <img src="/images/logos/dzuvo.png" alt="DZUVO" width="120" height="120" class="h-20 w-auto md:h-28">
         <p class="text-h3 font-bold text-tertiary-50 uppercase">
-          Des pièces <span class="text-secondary">de confiance</span>
+          {{ videoTitle }} <span class="text-secondary">{{ videoTitleAccent }}</span>
         </p>
         <p v-if="unavailable" class="text-body text-tertiary-800">
           La vidéo n’est pas encore disponible.
@@ -93,7 +98,7 @@ onMounted(async () => {
         v-show="!unavailable"
         ref="player"
         class="relative size-full object-cover"
-        :src="VIDEO_SRC"
+        :src="videoSrc"
         muted
         loop
         playsinline
