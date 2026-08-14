@@ -84,54 +84,44 @@ export default defineNuxtConfig({
   },
 
   /*
-   * La page d'accueil n'est plus figée au build.
+   * Aucune page n'est figée au build.
    *
-   * Son contenu se saisit désormais dans WordPress (extension « DZUVO — page
-   * d'accueil ») : la pré-rendre reviendrait à exiger un `npm run build` après
-   * chaque correction de texte, ce qui retirerait tout intérêt à
-   * l'administration.
+   * Le menu et le contenu de l'accueil se saisissent dans WordPress. Pré-rendre
+   * une page, c'est y graver l'état de WordPress au moment du build : la page
+   * ne se corrigera plus jamais toute seule. Et comme le menu vit dans l'en-tête
+   * de **toutes** les pages, une seule page figée suffit à y montrer un menu
+   * périmé — l'incohérence la plus difficile à diagnostiquer.
    *
    * `swr` garde l'essentiel du pré-rendu : la page est servie depuis le cache,
    * donc instantanément, et régénérée en arrière-plan passé le délai. Le
-   * visiteur n'attend jamais WordPress ; une modification paraît au plus tard
-   * cinq minutes après avoir été enregistrée.
+   * visiteur n'attend jamais WordPress.
+   *
+   * Seules les pages publiques et identiques pour tous figurent ici. Ni
+   * `/panier`, ni `/commande`, ni `/compte` : leur contenu dépend du visiteur,
+   * les mettre en cache partagé montrerait à l'un ce qui appartient à l'autre.
    *
    * Corollaire : le site a besoin d'un serveur Node (`.output/server`).
-   * Un export 100 % statique (`nuxt generate`) figerait de nouveau l'accueil.
+   * Un export 100 % statique (`nuxt generate`) figerait de nouveau ces pages.
    */
   routeRules: {
-    '/': { swr: 300 },
+    '/': { swr: 60 },
+    '/contact': { swr: 60 },
+    '/connexion': { swr: 60 },
+    '/inscription': { swr: 60 },
   },
 
-  // Pré-rendu : pages instantanées et bon SEO sur un site majoritairement statique.
   nitro: {
     prerender: {
-      crawlLinks: true,
-      // L'accueil n'y figure plus (voir routeRules) : le pré-rendu part donc
-      // des pages fixes, qui ne dépendent d'aucun contenu éditorial.
-      routes: ['/contact', '/connexion', '/inscription', '/sitemap.xml'],
-      ignore: [
-        /*
-         * L'accueil, atteint depuis le logo de chaque page pré-rendue. Sans
-         * cette exclusion, le robot le figerait malgré tout et le fichier
-         * statique passerait devant la règle `swr` — le contenu WordPress
-         * redeviendrait daté du build. L'expression exacte est indispensable :
-         * la chaîne « / » ferait correspondre toutes les routes.
-         */
-        /^\/$/,
-
-        // Routes liées depuis la home dont la page reste à écrire.
-        '/nouveautes', '/promos', '/compte', '/panier', '/mot-de-passe-oublie',
-        // Tunnel de commande : dépend du panier du visiteur, jamais figé.
-        '/commande', '/commande/confirmation',
-        '/professionnels', '/blog',
-        // Catalogue : servi en SSR. Prix, stocks et rubriques viennent de
-        // WooCommerce et changent sans rebuild — les figer les périmerait.
-        '/produits', '/categories',
-        '/livraison', '/paiement', '/financement', '/garantie', '/engagements',
-        '/suivi-commande', '/fidelite', '/avis', '/actualites', '/consigne',
-        '/securite-produits', '/legal',
-      ],
+      /*
+       * Plus aucune page. Le pré-rendu et `swr` se disputeraient la même
+       * adresse, et le fichier statique gagnerait toujours — c'est ce qui
+       * gardait un vieux menu sur l'accueil en ligne.
+       *
+       * Le robot est coupé pour la même raison : en suivant le logo, il
+       * ramenait l'accueil dans le pré-rendu sans qu'on le lui demande.
+       */
+      crawlLinks: false,
+      routes: ['/sitemap.xml'],
     },
   },
 

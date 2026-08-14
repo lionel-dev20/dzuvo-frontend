@@ -28,11 +28,12 @@ const EMPTY: HomeContent = {
   source: 'indisponible',
 }
 
-/* Mêmes durées que la navigation : un contenu servi vaut cinq minutes, un
-   échec quinze secondes — le temps d'éviter une rafale d'appels, pas de faire
-   durer la panne. */
+/* Mêmes durées que la navigation : un contenu servi vaut une minute, un échec
+   quinze secondes — le temps d'éviter une rafale d'appels, pas de faire durer
+   la panne. Une minute parce que ce cache s'ajoute à celui de la page elle-même
+   (`swr` dans nuxt.config) : deux caches de cinq minutes se cumuleraient. */
 const cache = { value: null as HomeContent | null, expiresAt: 0 }
-const TTL = 5 * 60 * 1000
+const TTL = 60 * 1000
 const TTL_ERROR = 15 * 1000
 
 export default defineEventHandler(async (): Promise<HomeContent> => {

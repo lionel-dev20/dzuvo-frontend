@@ -20,9 +20,15 @@ interface NavigationResult {
 /* Un menu change rarement : le relire à chaque page serait un appel réseau de
    trop sur le chemin critique du rendu. Un échec, lui, ne se garde qu'un
    instant — le temps d'éviter une rafale d'appels, pas de faire durer la
-   panne. */
+   panne.
+ *
+ * Une minute, et non cinq : ce cache-ci s'ajoute à celui des pages (`swr` dans
+ * nuxt.config). Deux fois cinq minutes, et une correction de menu peut mettre
+ * dix minutes à paraître — assez pour croire que rien ne fonctionne. Le coût
+ * est négligeable : au pire un appel par minute, quel que soit le nombre de
+ * visiteurs. */
 const cache = { value: null as NavigationResult | null, expiresAt: 0 }
-const TTL = 5 * 60 * 1000
+const TTL = 60 * 1000
 const TTL_ERROR = 15 * 1000
 
 export default defineEventHandler(async (): Promise<NavigationResult> => {
