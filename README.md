@@ -213,25 +213,41 @@ disparaissent de leur section sans emporter le reste.
 Une seule requête sert les neuf sections, et la clé partagée du composable fait
 que Nuxt ne la joue qu'une fois par rendu.
 
-### L'accueil n'est plus figé au build
+### Plus aucune page n'est figée au build
 
-C'est la contrepartie de tout ceci, et elle est volontaire : `/` n'est plus
-pré-rendue. Elle l'était, ce qui aurait imposé un `npm run build` après chaque
-correction de texte — autant ne pas avoir d'administration du tout.
+C'est la contrepartie de tout ceci, et elle est volontaire. Pré-rendre une page,
+c'est y graver l'état de WordPress au moment du build : elle ne se corrigera
+plus jamais toute seule. Et comme le menu vit dans l'en-tête de **toutes** les
+pages, une seule page figée suffit à y montrer un menu périmé, tandis que le
+reste du site affiche le bon — l'incohérence la plus difficile à diagnostiquer.
 
-La règle `routeRules: { '/': { swr: 300 } }` dans
-[nuxt.config.ts](nuxt.config.ts) garde l'essentiel du pré-rendu : la page est
-servie depuis le cache, donc instantanément, et régénérée en arrière-plan passé
-le délai. Une modification paraît **au plus tard cinq minutes** après
-enregistrement, et le visiteur n'attend jamais WordPress.
+`prerender` ne produit donc plus que `/sitemap.xml`, et le robot (`crawlLinks`)
+est coupé : en suivant le logo, il ramenait l'accueil dans le pré-rendu sans
+qu'on le lui demande, et le fichier statique repassait devant la règle `swr`.
 
-Deux conséquences à connaître :
+À la place, `routeRules` dans [nuxt.config.ts](nuxt.config.ts) garde l'essentiel
+du pré-rendu : la page est servie depuis le cache, donc instantanément, et
+régénérée en arrière-plan passé le délai. Le visiteur n'attend jamais WordPress.
 
+**Deux caches se suivent**, et c'est ce qui fixe le délai réel :
+
+| Couche | Durée | Où |
+| --- | --- | --- |
+| Réponse WordPress | 60 s | `server/api/navigation.get.ts`, `server/api/home.get.ts` |
+| Page rendue | 60 s | `routeRules` dans `nuxt.config.ts` |
+
+Ils s'additionnent : une modification paraît en **deux minutes au pire**. C'est
+pourquoi ils sont à 60 s et non à 5 min — deux fois cinq minutes, et l'on croit
+que rien ne fonctionne. Le coût est négligeable : au pire un appel par minute
+vers WordPress, quel que soit le nombre de visiteurs.
+
+Deux garde-fous :
+
+- seules les pages **publiques et identiques pour tous** ont une règle `swr`.
+  Ni `/panier`, ni `/commande`, ni `/compte` : leur contenu dépend du visiteur,
+  un cache partagé montrerait à l'un ce qui appartient à l'autre ;
 - le site a besoin d'un **serveur Node** (`.output/server`) ; un export
-  100 % statique (`nuxt generate`) figerait de nouveau l'accueil ;
-- l'accueil figure dans `prerender.ignore` sous la forme d'une expression
-  exacte (`/^\/$/`). Sans elle, le robot du pré-rendu la reprendrait en suivant
-  le logo des autres pages, et le fichier statique passerait devant la règle.
+  100 % statique (`nuxt generate`) figerait de nouveau toutes ces pages.
 
 ## Panier et commande
 
