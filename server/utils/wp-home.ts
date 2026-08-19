@@ -9,6 +9,7 @@ import type {
   WpHomePayload,
 } from '#shared/types/home'
 import type { NavItem } from '#shared/types/navigation'
+import { noCache } from './wp-menu'
 import { wooConfig } from './woocommerce'
 
 /**
@@ -35,6 +36,9 @@ export async function fetchWpHome(): Promise<WpHomePayload | null> {
     // Un peu plus généreux que pour le menu : la réponse porte neuf sections,
     // et elle n'est demandée qu'une fois toutes les cinq minutes.
     timeout: 6000,
+    // Même raison que pour le menu : l'hébergement annonce sept jours de cache
+    // sur toutes ses adresses, API comprise.
+    ...noCache(),
   })
 
   if (!raw || typeof raw !== 'object') return null

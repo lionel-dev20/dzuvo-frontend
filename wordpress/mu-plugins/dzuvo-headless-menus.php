@@ -83,6 +83,28 @@ add_action('rest_api_init', function () {
  * Un emplacement sans menu assigné n'est pas une erreur : on renvoie une
  * liste vide, et le front sait qu'il doit se rabattre sur autre chose.
  */
+/**
+ * Interdit la mise en cache des routes « dzuvo ».
+ *
+ * L'hébergement pose `Cache-Control: public, max-age=604800` sur toutes les
+ * réponses, API REST comprise — sept jours. Un menu corrigé aujourd'hui peut
+ * alors être servi périmé pendant une semaine à qui passe par un cache
+ * intermédiaire, et rien ne le signale : le site reçoit une réponse valide,
+ * simplement vieille.
+ *
+ * Le filtre porte sur l'espace de noms entier plutôt que sur chaque route :
+ * une route ajoutée plus tard est ainsi couverte sans qu'on y pense.
+ */
+add_filter('rest_post_dispatch', function ($response, $server, $request) {
+    if (str_starts_with($request->get_route(), '/dzuvo/v1')) {
+        $response->header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+        $response->header('Expires', '0');
+        $response->header('Pragma', 'no-cache');
+    }
+
+    return $response;
+}, 10, 3);
+
 function dzuvo_menu_response(WP_REST_Request $request)
 {
     $location = $request->get_param('location');

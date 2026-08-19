@@ -22,6 +22,25 @@ useHead({
 <template>
   <div>
     <NuxtRouteAnnouncer />
+
+    <!--
+      Barre de progression pendant les changements de page.
+
+      Elle ne paraît qu'au-delà de 200 ms (`throttle`) : en dessous, la page est
+      déjà là et un éclair de rouge se lirait comme un défaut d'affichage. Les
+      pages qui attendent WooCommerce, elles, dépassent ce seuil — c'est
+      exactement là qu'un clic sans réaction fait douter d'avoir cliqué.
+
+      Rien au premier chargement : la page arrive déjà rendue par le serveur.
+    -->
+    <NuxtLoadingIndicator
+      :height="3"
+      :throttle="200"
+      :duration="2500"
+      color="linear-gradient(to right, var(--color-secondary-dark), var(--color-secondary), var(--color-secondary-light))"
+      error-color="var(--color-secondary-darker)"
+    />
+
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
