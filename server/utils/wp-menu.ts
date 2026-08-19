@@ -23,6 +23,26 @@ export interface WpMenuResponse {
 /** Emplacements déclarés par l'extension. */
 export type MenuLocation = 'dzuvo-primary' | 'dzuvo-footer'
 
+/**
+ * De quoi traverser les caches intermédiaires.
+ *
+ * L'hébergement de WordPress répond `Cache-Control: public, max-age=604800` sur
+ * *toutes* les adresses, y compris l'API REST : sept jours. Un proxy sur le
+ * trajet peut donc servir un menu vieux d'une semaine, et une correction
+ * paraîtrait ici sans jamais atteindre le serveur du site.
+ *
+ * L'en-tête de requête ne suffit pas — beaucoup de caches l'ignorent — d'où
+ * l'horodatage, qui rend chaque adresse unique. Ce n'est pas un appel de plus :
+ * la réponse est déjà gardée une minute côté site, WordPress voit donc au pire
+ * une requête par minute.
+ */
+export function noCache() {
+  return {
+    headers: { 'cache-control': 'no-cache' },
+    query: { _: Date.now() },
+  }
+}
+
 export async function fetchWpMenu(location: MenuLocation): Promise<NavItem[] | null> {
   const { baseUrl } = wooConfig()
   if (!baseUrl) return null
@@ -30,6 +50,7 @@ export async function fetchWpMenu(location: MenuLocation): Promise<NavItem[] | n
   const response = await $fetch<WpMenuResponse>(`${baseUrl}/wp-json/dzuvo/v1/menus/${location}`, {
     // Un menu ne justifie pas de retarder l'affichage de la page.
     timeout: 4000,
+    ...noCache(),
   })
 
   // Emplacement sans menu assigné : ce n'est pas une erreur, mais rien à servir.

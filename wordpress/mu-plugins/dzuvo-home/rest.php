@@ -22,6 +22,26 @@ add_action( 'rest_api_init', function () {
 	] );
 } );
 
+/**
+ * Interdit la mise en cache des routes « dzuvo ».
+ *
+ * L'hébergement pose `Cache-Control: public, max-age=604800` sur toutes les
+ * réponses, API REST comprise — sept jours. Un menu corrigé aujourd'hui peut
+ * donc être servi périmé pendant une semaine à qui passe par un cache
+ * intermédiaire, sans que rien ne le signale.
+ *
+ * Ces routes existent pour refléter une saisie : elles doivent se relire.
+ */
+function dzuvo_home_no_cache( $response ) {
+	if ( $response instanceof WP_REST_Response ) {
+		$response->header( 'Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0' );
+		$response->header( 'Expires', '0' );
+		$response->header( 'Pragma', 'no-cache' );
+	}
+
+	return $response;
+}
+
 function dzuvo_home_rest_response() {
 	// Chaque appel interroge la base : on ne les rejoue pas pour établir le
 	// relevé ci-dessous.
@@ -33,7 +53,7 @@ function dzuvo_home_rest_response() {
 	$testimonials = dzuvo_home_testimonials();
 	$settings     = dzuvo_home_settings();
 
-	return rest_ensure_response( [
+	return dzuvo_home_no_cache( rest_ensure_response( [
 		'slides'       => $slides,
 		'offers'       => $offers,
 		'spotlights'   => $spotlights,
@@ -57,5 +77,5 @@ function dzuvo_home_rest_response() {
 			'testimonials' => count( $testimonials['top'] ) + count( $testimonials['bottom'] ),
 			'settings'     => count( $settings ),
 		],
-	] );
+	] ) );
 }
