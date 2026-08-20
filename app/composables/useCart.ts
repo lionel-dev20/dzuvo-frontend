@@ -19,11 +19,30 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 jours
 const SYNC_DEBOUNCE_MS = 250
 
 export function useCart() {
-  const items = useCookie<CartItem[]>(CART_COOKIE, {
-    default: () => [],
+  /*
+   * Pas de valeur par défaut, et c'est essentiel.
+   *
+   * Avec un défaut, Nuxt réécrit le cookie à chaque rendu serveur — y compris
+   * pour un visiteur qui n'en a aucun, à qui il envoie alors `dzuvo_cart=[]`.
+   * Anodin tant que rien n'est mis en cache ; désastreux dès qu'une page l'est
+   * (`swr` dans nuxt.config) : l'en-tête part avec la réponse gardée en cache,
+   * et se rejoue ensuite à tous les visiteurs. Celui qui avait un panier reçoit
+   * l'ordre de le vider, à chaque passage sur cette page.
+   *
+   * Sans défaut, un panier absent le reste, et rien n'est émis.
+   */
+  const stored = useCookie<CartItem[] | null>(CART_COOKIE, {
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'lax',
     path: '/',
+  })
+
+  /* Le reste du composable manipule une liste, jamais `null`. L'écriture
+     supprime le cookie quand il ne reste rien : un panier vide n'a pas à
+     laisser de trace dans le navigateur. */
+  const items = computed<CartItem[]>({
+    get: () => stored.value ?? [],
+    set: (next) => { stored.value = next.length ? next : null },
   })
 
   const couponCode = useCookie<string | null>(COUPON_COOKIE, {

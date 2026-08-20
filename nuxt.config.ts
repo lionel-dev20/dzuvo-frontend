@@ -105,6 +105,8 @@ export default defineNuxtConfig({
    */
   routeRules: {
     '/': { swr: 60 },
+    // La boutique, le temps du pré-lancement : c'est elle qui lit WordPress.
+    '/home2': { swr: 60 },
     '/contact': { swr: 60 },
     '/connexion': { swr: 60 },
     '/inscription': { swr: 60 },
