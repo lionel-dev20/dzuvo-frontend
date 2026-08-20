@@ -81,7 +81,11 @@ onMounted(() => {
       class="flex items-center gap-2.5 px-2.5 transition-[padding,margin] duration-300 md:gap-5 md:px-5 lg:px-24"
       :class="scrolled ? 'mt-0 py-3' : 'mt-2.5 py-3 md:mt-4 lg:mt-6'"
     >
-      <NuxtLink to="/" class="shrink-0" aria-label="DZUVO — accueil">
+      <!-- Pendant le pré-lancement, le logo ramène à la boutique et non à `/`,
+           qui affiche la page d'annonce : depuis un rayon, ce serait une sortie
+           du site plutôt qu'un retour à l'accueil. À remettre sur « / » le jour
+           de l'ouverture. -->
+      <NuxtLink to="/home2" class="shrink-0" aria-label="DZUVO — accueil">
         <img
           src="/images/logos/dzuvo.png"
           alt="DZUVO"
