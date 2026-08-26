@@ -1,4 +1,23 @@
-<script setup>
+<script setup lang="ts">
+/**
+ * Gabarit de tout le site, sauf la page d'annonce.
+ *
+ * Le thème se règle ici, sur `<html>`, et nulle part ailleurs : les pages
+ * d'accueil gardent le fond sombre d'origine, le reste du site passe en clair.
+ * Poser la classe sur la racine du document plutôt que sur un conteneur évite
+ * qu'un rebond de défilement laisse voir la couleur de l'autre thème.
+ */
+const route = useRoute()
+
+/** Les deux pages qui gardent le fond sombre : l'annonce et l'accueil boutique. */
+const DARK_ROUTES = ['/', '/home2']
+const isDark = computed(() => DARK_ROUTES.includes(route.path))
+
+useHead(computed(() => ({
+  htmlAttrs: { class: isDark.value ? '' : 'theme-light' },
+  meta: [{ name: 'theme-color', content: isDark.value ? '#030014' : '#f5f5f5' }],
+})))
+
 useOrganizationSchema()
 </script>
 

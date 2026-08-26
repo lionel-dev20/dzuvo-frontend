@@ -53,11 +53,25 @@ export interface ShippingMethod {
 }
 
 /** Ce que renvoie la création de commande, avant paiement. */
+/**
+ * Moyens de paiement proposés par le tunnel.
+ *
+ * `card` encaisse tout de suite par Stripe ; `cod` crée la commande et laisse
+ * le règlement se faire à la livraison — la boutique WooCommerce s'en charge,
+ * la passerelle « Paiement à la livraison » y est active.
+ */
+export type PaymentMethod = 'card' | 'cod'
+
 export interface CheckoutSession {
   orderId: number
   orderKey: string
-  /** Secret de confirmation Stripe, consommé par Elements côté navigateur. */
-  clientSecret: string
+  /**
+   * Secret de confirmation Stripe, consommé par Elements côté navigateur.
+   * Absent pour un paiement à la livraison : il n'y a rien à encaisser ici.
+   */
+  clientSecret?: string
+  /** Moyen retenu, tel que la commande WooCommerce l'a enregistré. */
+  paymentMethod: PaymentMethod
   /** Total réellement facturé, en dollars. */
   total: number
   currency: string

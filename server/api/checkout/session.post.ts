@@ -1,5 +1,5 @@
 import type { CartItem } from '#shared/types/cart'
-import type { CheckoutPayload } from '#shared/types/checkout'
+import type { CheckoutPayload, PaymentMethod } from '#shared/types/checkout'
 import { hasErrors, validateAddress } from '#shared/utils/validation'
 import { getSessionUser } from '../../utils/auth'
 import { buildLines, normalizeItems } from '../../utils/cart'
@@ -24,16 +24,28 @@ export default defineEventHandler(async (event) => {
       message: 'La commande n’est pas encore ouverte. Merci de réessayer plus tard.',
     })
   }
-  if (!isStripeConfigured()) {
+
+  const body = await readBody<CheckoutPayload & {
+    items: CartItem[]
+    coupon?: string
+    paymentMethod?: PaymentMethod
+  }>(event).catch(() => null)
+
+  /*
+   * Moyen de paiement : la carte par défaut, et rien d'autre n'est accepté que
+   * ce qui est explicitement prévu ici — un intitulé venu du navigateur ne doit
+   * pas pouvoir désigner une passerelle au hasard.
+   */
+  const paymentMethod: PaymentMethod = body?.paymentMethod === 'cod' ? 'cod' : 'card'
+
+  // La carte exige Stripe ; le paiement à la livraison n'en a pas besoin.
+  if (paymentMethod === 'card' && !isStripeConfigured()) {
     throw createError({
       statusCode: 503,
       statusMessage: 'Paiement non configuré',
-      message: 'Le paiement par carte n’est pas encore disponible. Merci de réessayer plus tard.',
+      message: 'Le paiement par carte n’est pas encore disponible. Choisissez le paiement à la livraison.',
     })
   }
-
-  const body = await readBody<CheckoutPayload & { items: CartItem[], coupon?: string }>(event)
-    .catch(() => null)
 
   // Champ piège : un robot le remplit, un visiteur jamais.
   if (body?.honeypot) {
@@ -96,13 +108,13 @@ export default defineEventHandler(async (event) => {
   /* ---------- Commande WooCommerce ---------- */
 
   const user = await getSessionUser(event).catch(() => null)
-  const shippingAddress = toWooAddress(address)
+  const shippingAddress = toWooAddress(address, true)
 
   const order = await createOrder({
     lineItems: lines.map(line => ({ product_id: line.id, quantity: line.quantity })),
     couponCode: body?.coupon?.trim() || undefined,
     customerId: user?.id,
-    billing: body?.billing ? toWooAddress(body.billing) : shippingAddress,
+    billing: toWooAddress(body?.billing ?? address),
     shipping: shippingAddress,
     shippingLine: {
       method_id: method.id.split(':')[0]!,
@@ -110,6 +122,9 @@ export default defineEventHandler(async (event) => {
       total: method.cost.toFixed(2),
     },
     customerNote: body?.note?.trim() || undefined,
+    payment: paymentMethod === 'cod'
+      ? { method: 'cod', title: 'Paiement à la livraison', status: 'processing' }
+      : { method: 'stripe', title: 'Carte bancaire', status: 'pending' },
   }).catch((error) => {
     console.error('[checkout] création de commande refusée', error)
     throw createError({
@@ -129,6 +144,22 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Montant invalide',
       message: 'Le montant de la commande est invalide. Merci de reprendre votre panier.',
     })
+  }
+
+  /*
+   * Paiement à la livraison : la commande est complète, il n'y a rien à
+   * encaisser en ligne. On rend la main tout de suite, sans passer par Stripe
+   * ni par /api/checkout/confirm — le règlement se fera au livreur, et c'est
+   * WooCommerce qui le constatera.
+   */
+  if (paymentMethod === 'cod') {
+    return {
+      orderId: order.id,
+      orderKey: order.order_key,
+      paymentMethod,
+      total,
+      currency: order.currency || 'CAD',
+    }
   }
 
   try {
@@ -152,6 +183,7 @@ export default defineEventHandler(async (event) => {
       orderId: order.id,
       orderKey: order.order_key,
       clientSecret: intent.client_secret,
+      paymentMethod,
       total,
       currency: order.currency || 'CAD',
     }

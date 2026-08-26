@@ -8,8 +8,16 @@ import { toStripeAmount } from './stripe'
 /** Pays desservi. La boutique est réglée sur le Canada (devise CAD). */
 export const COUNTRY = 'CA'
 
-/** Adresse du formulaire → format WooCommerce. */
-export function toWooAddress(address: CheckoutAddress): WooAddress {
+/**
+ * Adresse du formulaire → format WooCommerce.
+ *
+ * `forShipping` retire le courriel : WooCommerce n'a pas de champ courriel sur
+ * l'adresse de livraison, seulement sur la facturation. Le lui envoyer quand
+ * même, c'est lui présenter une clé sans réglage correspondant — au mieux elle
+ * est ignorée, au pire elle fait échouer l'enregistrement de toute l'adresse.
+ * Autant ne pas courir le risque pour une donnée qu'il ne lira jamais.
+ */
+export function toWooAddress(address: CheckoutAddress, forShipping = false): WooAddress {
   return {
     first_name: address.firstName.trim(),
     last_name: address.lastName.trim(),
@@ -22,7 +30,7 @@ export function toWooAddress(address: CheckoutAddress): WooAddress {
     state: address.state.trim().toUpperCase(),
     postcode: formatPostcodeCA(address.postcode),
     country: COUNTRY,
-    email: address.email.trim().toLowerCase(),
+    ...(forShipping ? {} : { email: address.email.trim().toLowerCase() }),
     phone: address.phone.trim(),
     company: address.company?.trim() || '',
   }

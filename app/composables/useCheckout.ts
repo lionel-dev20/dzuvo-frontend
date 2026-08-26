@@ -1,4 +1,4 @@
-import type { CheckoutAddress, CheckoutSession, OrderSummary, ShippingMethod } from '#shared/types/checkout'
+import type { CheckoutAddress, CheckoutSession, OrderSummary, PaymentMethod, ShippingMethod } from '#shared/types/checkout'
 import type { FieldErrors } from '#shared/types/forms'
 import { hasErrors, validateAddress } from '#shared/utils/validation'
 import { findCity } from '#shared/config/cities'
@@ -105,8 +105,14 @@ export function useCheckout() {
     return true
   }
 
-  /** Ouvre le paiement : commande WooCommerce créée, PaymentIntent prêt. */
-  async function openSession() {
+  /**
+   * Ouvre le paiement : la commande WooCommerce est créée et le montant arrêté.
+   *
+   * Pour la carte, un PaymentIntent Stripe accompagne la réponse ; pour le
+   * paiement à la livraison, la commande est déjà complète et il n'y a plus
+   * rien à faire côté navigateur.
+   */
+  async function openSession(paymentMethod: PaymentMethod = 'card') {
     return $fetch<CheckoutSession>('/api/checkout/session', {
       method: 'POST',
       body: {
@@ -117,6 +123,7 @@ export function useCheckout() {
         shipping: shippingId.value,
         note: note.value,
         honeypot: honeypot.value,
+        paymentMethod,
       },
     })
   }

@@ -91,6 +91,15 @@
     to { transform: translateX(0); }
   }
 
+  /* ---------- Ombres ---------- */
+  /* Déclarées en jetons pour qu'elles suivent le thème : une ombre noire à
+     50 % ne se voit pas sur fond sombre, mais salit un fond clair. */
+  --shadow-panel: 0 16px 40px rgb(0 0 0 / 0.5);
+  --shadow-menu: 0 24px 60px rgb(0 0 0 / 0.55);
+  --shadow-bar: 0 8px 24px rgb(0 0 0 / 0.4);
+  --shadow-drawer: 0 0 60px rgb(0 0 0 / 0.6);
+  --shadow-drawer-left: -12px 0 40px rgb(0 0 0 / 0.5);
+
   /* ---------- Rayons ---------- */
   /* Plafond imposé par le guide : 12px sur les boutons. */
   --radius-btn: 12px;
@@ -102,4 +111,64 @@
      (logo + ville + 5 liens + actions ≈ 1213px, plus les gouttières).
      À réajuster si la taille du logo ou le padding du header changent. */
   --breakpoint-nav: 1440px;
+}
+
+/**
+ * Thème clair — tout le site sauf les pages d'accueil.
+ *
+ * Aucun composant n'est touché : les classes Tailwind pointent toutes vers ces
+ * variables (`text-tertiary-800` compile en `color: var(--color-tertiary-800)`),
+ * il suffit donc de redéfinir les variables sur `<html>` pour que la cascade
+ * fasse le reste. C'est aussi ce qui garantit qu'aucune couleur n'échappe au
+ * basculement — il n'y a pas de valeur en dur à oublier quelque part.
+ *
+ * L'échelle tertiaire s'inverse. Sur fond sombre, 50 est le blanc le plus franc
+ * et 900 le gris le plus discret ; sur fond clair, 50 devient le noir le plus
+ * franc et 900 le gris le plus discret. La hiérarchie est conservée, seule sa
+ * direction change — un titre reste plus contrasté qu'une mention secondaire.
+ */
+.theme-light {
+  /* Texte, du plus affirmé au plus discret. Rapports de contraste sur #f5f5f5 :
+     50 ≈ 17:1, 500 ≈ 13:1, 600 ≈ 8:1, 700 ≈ 5,7:1, 800 ≈ 5:1, 900 ≈ 3,6:1. */
+  --color-tertiary-50: #0d0d14;
+  --color-tertiary-100: #111119;
+  --color-tertiary-200: #15151d;
+  --color-tertiary-300: #1a1a22;
+  --color-tertiary-400: #212129;
+  --color-tertiary-500: #2b2b34;
+  --color-tertiary-600: #45454f;
+  --color-tertiary-700: #61616b;
+  --color-tertiary-800: #6e6e78;
+  --color-tertiary-900: #85858f;
+
+  /* Surfaces. `primary-darker` porte le fond de page, `primary` les cartes :
+     leurs rôles ne changent pas, seules leurs valeurs s'éclaircissent. */
+  --color-primary-darker: #f5f5f5;
+  --color-primary-dark: #f0f0f0;
+  --color-primary: #ffffff;
+  --color-primary-hover: #fafafa;
+  --color-primary-active: #f0f0f0;
+
+  /* Mêmes ombres, portées par une couleur d'encre plutôt que par du noir pur,
+     et bien plus discrètes : sur fond clair, l'ombre suggère le relief au lieu
+     de l'imposer. */
+  --shadow-panel: 0 16px 40px rgb(13 13 20 / 0.12);
+  --shadow-menu: 0 24px 60px rgb(13 13 20 / 0.14);
+  --shadow-bar: 0 8px 24px rgb(13 13 20 / 0.08);
+  --shadow-drawer: 0 0 60px rgb(13 13 20 / 0.16);
+  --shadow-drawer-left: -12px 0 40px rgb(13 13 20 / 0.14);
+
+  /*
+   * Le rouge de marque ne bouge pas : c'est l'identité, et il porte les boutons.
+   * Le texte rouge sur fond clair tourne autour de 3,9:1 — suffisant pour un
+   * bouton ou un titre, juste en dessous du seuil pour un petit texte courant.
+   * Les messages d'erreur restent lisibles, mais doublés d'un mot, jamais
+   * portés par la seule couleur.
+   */
+}
+
+/* Le texte sélectionné reste blanc sur le rouge, quel que soit le thème :
+   sous `.theme-light`, `tertiary-50` est devenu noir et disparaîtrait. */
+.theme-light ::selection {
+  color: #ffffff;
 }
