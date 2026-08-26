@@ -167,7 +167,7 @@ const idle = 'text-tertiary-500 hover:bg-tertiary-500/6 [&.router-link-exact-act
         class="absolute top-full left-0 z-70 w-[min(880px,88vw)] origin-top pt-3"
         @pointerenter="keepOpen"
       >
-        <div class="grid gap-4 rounded-xl border border-tertiary-500/12 bg-primary p-4 shadow-[0_24px_60px_rgba(0,0,0,0.55)] md:grid-cols-[240px_minmax(0,1fr)]">
+        <div class="grid gap-4 rounded-xl border border-tertiary-500/12 bg-primary p-4 shadow-menu md:grid-cols-[240px_minmax(0,1fr)]">
           <!-- Carte de tête : mène à la rubrique entière. -->
           <NuxtLink
             :to="props.items[open].to"

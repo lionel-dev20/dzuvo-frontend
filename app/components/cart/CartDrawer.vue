@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
           <div
             v-if="drawerOpen"
             ref="panel"
-            class="flex h-full w-full max-w-[440px] flex-col bg-primary-dark shadow-[0_0_60px_rgba(0,0,0,0.6)] outline-none"
+            class="flex h-full w-full max-w-[440px] flex-col bg-primary-dark shadow-drawer outline-none"
             role="dialog"
             aria-modal="true"
             :aria-label="heading"

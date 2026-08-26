@@ -191,11 +191,18 @@ function dzuvo_item_target($item): array
         $post = get_post((int) $item->object_id);
 
         if ($post instanceof WP_Post) {
-            $path = match ($post->post_type) {
-                'product' => '/produits/' . $post->post_name,
-                'page'    => dzuvo_page_path($post),
-                default   => '/' . $post->post_name,
-            };
+            /* `match` et `str_starts_with` exigent PHP 8. WordPress tourne encore
+               sur des hébergements en 7.4 — un site entièrement à terre pour une
+               syntaxe trop récente est un prix trop élevé pour trois lignes. */
+            if ($post->post_type === 'product') {
+                $path = '/produits/' . $post->post_name;
+            }
+            elseif ($post->post_type === 'page') {
+                $path = dzuvo_page_path($post);
+            }
+            else {
+                $path = '/' . $post->post_name;
+            }
 
             return ['to' => $path, 'external' => false];
         }
@@ -267,7 +274,7 @@ function dzuvo_custom_target(string $url): array
     $base = rtrim($home['path'] ?? '', '/');
     $path = $link['path'] ?? '/';
 
-    if ($base !== '' && str_starts_with($path, $base)) {
+    if ($base !== '' && strpos($path, $base) === 0) {
         $path = substr($path, strlen($base));
     }
 

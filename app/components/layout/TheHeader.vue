@@ -21,7 +21,7 @@ const mobileSearch = useTemplateRef<HTMLInputElement>('mobileSearch')
 /* Icône au-dessus, libellé en dessous : l'intitulé lève l'ambiguïté du pictogramme. */
 const iconButton = 'flex min-w-[54px] flex-col items-center gap-1 rounded-btn px-2 py-1.5 text-tertiary-500 transition-colors hover:bg-tertiary-500/8 hover:text-secondary'
 const iconLabel = 'text-[11px] leading-none font-medium'
-const panel = 'absolute top-[calc(100%+10px)] z-70 rounded-xl border border-tertiary-500/12 bg-primary shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
+const panel = 'absolute top-[calc(100%+10px)] z-70 rounded-xl border border-tertiary-500/12 bg-primary shadow-panel'
 const searchBox = 'flex items-center gap-2 rounded-btn border border-tertiary-500/18 bg-tertiary-500/6 px-3.5 py-2'
 const badge = 'absolute -top-1.5 -right-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-secondary px-1 text-[11px] leading-none font-bold text-tertiary-50'
 
@@ -73,7 +73,7 @@ onMounted(() => {
   <header
     class="sticky top-0 z-50 text-tertiary-500 transition-[background-color,box-shadow] duration-300"
     :class="scrolled
-      ? 'bg-primary/85 shadow-[0_8px_24px_rgba(0,0,0,0.4)] backdrop-blur-md'
+      ? 'bg-primary/85 shadow-bar backdrop-blur-md'
       : 'bg-transparent'"
   >
     <!-- Passé le hero, la barre se compacte : marge annulée, logo réduit. -->

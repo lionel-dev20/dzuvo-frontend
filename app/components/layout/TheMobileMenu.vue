@@ -53,7 +53,7 @@ onMounted(() => {
     >
       <div
         v-if="open"
-        class="fixed inset-y-0 right-0 z-61 flex w-[min(320px,85vw)] flex-col bg-primary text-tertiary-500 shadow-[-12px_0_40px_rgba(0,0,0,0.5)] nav:hidden"
+        class="fixed inset-y-0 right-0 z-61 flex w-[min(320px,85vw)] flex-col bg-primary text-tertiary-500 shadow-drawer-left nav:hidden"
       >
         <div class="flex items-center justify-between border-b border-tertiary-500/10 px-5 py-3">
           <img src="/images/logos/dzuvo.png" alt="DZUVO" width="40" height="40" class="h-10 w-auto">

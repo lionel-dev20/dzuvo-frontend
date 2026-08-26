@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PaymentMethod } from '#shared/types/checkout'
 import { CANADA_PROVINCES, formatPostcodeCA, validateAddress } from '#shared/utils/validation'
 import { deliveryCities, findCity } from '#shared/config/cities'
 import { formatPrice } from '#shared/utils/format'
@@ -170,7 +171,30 @@ function continueFrom(step: 1 | 2) {
 /** Complétude de la carte : Stripe seul la connaît, il nous la signale. */
 const cardDone = ref(false)
 
-const canPay = computed(() => contactDone.value && deliveryDone.value && cardDone.value)
+/*
+ * Moyens de paiement.
+ *
+ * La carte n'est proposée que si Stripe est configuré : offrir un choix qui
+ * échouera à la validation vaut moins que ne pas l'offrir. Sans Stripe, le
+ * paiement à la livraison est retenu d'emblée — la boutique l'accepte, il n'y
+ * a donc aucune raison de bloquer la commande.
+ */
+const config = useRuntimeConfig()
+const cardAvailable = computed(() => Boolean(config.public.stripePublishableKey))
+const paymentMethod = ref<PaymentMethod>(cardAvailable.value ? 'card' : 'cod')
+
+/** Le règlement à la livraison n'a rien à saisir : l'étape est complète d'office. */
+const paymentDone = computed(() => paymentMethod.value === 'cod' || cardDone.value)
+
+const paymentSummary = computed(() =>
+  paymentMethod.value === 'cod' ? 'Paiement à la livraison' : 'Carte bancaire',
+)
+
+const payOption = 'flex w-full cursor-pointer items-start gap-3 rounded-xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45'
+const payOptionOn = 'border-secondary bg-secondary/8'
+const payOptionOff = 'border-tertiary-500/15 hover:border-tertiary-500/35'
+
+const canPay = computed(() => contactDone.value && deliveryDone.value && paymentDone.value)
 
 /**
  * Un bouton désactivé sans explication est une impasse : on nomme ce qui
@@ -180,7 +204,7 @@ const missing = computed(() => {
   const gaps: string[] = []
   if (!contactDone.value) gaps.push('vos coordonnées')
   if (!deliveryDone.value) gaps.push(shippingId.value ? 'votre adresse de livraison' : 'votre adresse et votre mode de livraison')
-  if (!cardDone.value) gaps.push('vos informations de carte')
+  if (!paymentDone.value) gaps.push('vos informations de carte')
 
   if (!gaps.length) return ''
   const last = gaps.pop()
@@ -196,6 +220,32 @@ async function pay() {
     openStep.value = contactDone.value ? 2 : 1
     await nextTick()
     document.querySelector('[aria-invalid="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    return
+  }
+
+  /*
+   * Paiement à la livraison : rien à valider ni à encaisser ici. La commande
+   * est créée côté serveur, déjà en traitement, et le client règle au livreur.
+   */
+  if (paymentMethod.value === 'cod') {
+    paying.value = true
+
+    try {
+      const session = await openSession('cod')
+
+      completed.value = true
+      cart.clear()
+      reset()
+      await navigateTo(`/commande/confirmation?order=${session.orderId}&key=${session.orderKey}`)
+    }
+    catch (error) {
+      const data = (error as { data?: { data?: { errors?: Record<string, string> } } }).data?.data
+      if (data?.errors) errors.value = data.errors
+      formError.value = checkoutErrorMessage(error)
+    }
+    finally {
+      paying.value = false
+    }
     return
   }
 
@@ -217,11 +267,11 @@ async function pay() {
     }
 
     // 2. Le serveur crée la commande WooCommerce et arrête le montant.
-    const session = await openSession()
+    const session = await openSession('card')
 
     // 3. Débit de la carte.
     const result = await card.value.confirm(
-      session.clientSecret,
+      session.clientSecret!,
       `${window.location.origin}/commande/confirmation?order=${session.orderId}&key=${session.orderKey}`,
     )
     if (result.error || !result.id) {
@@ -421,27 +471,87 @@ useSeo({
         <!-- 3. Paiement -->
         <CheckoutStep
           :step="3"
-          title="Paiement par carte"
-          summary="Carte bancaire"
+          title="Paiement"
+          :summary="paymentSummary"
           :open="openStep === 3"
           @toggle="toggle(3)"
         >
-          <p class="flex items-start gap-2 text-[11px] text-tertiary-800">
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" class="mt-0.5 shrink-0 text-secondary" aria-hidden="true">
-              <path d="M10 1.8 3.5 4.4v4.9c0 4 2.8 7.2 6.5 8.9 3.7-1.7 6.5-4.9 6.5-8.9V4.4L10 1.8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-            </svg>
-            Vos données bancaires sont transmises chiffrées à notre prestataire de paiement. Ce site ne les voit jamais.
-          </p>
+          <!-- Choix du moyen. Deux options seulement : régler maintenant, ou
+               régler au livreur. -->
+          <div class="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Moyen de paiement">
+            <button
+              type="button"
+              role="radio"
+              :aria-checked="paymentMethod === 'card'"
+              :disabled="!cardAvailable"
+              :class="[payOption, paymentMethod === 'card' ? payOptionOn : payOptionOff]"
+              @click="paymentMethod = 'card'"
+            >
+              <span class="mt-0.5 shrink-0 text-secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="2.75" y="5" width="18.5" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7" />
+                  <path d="M2.75 9.5h18.5" stroke="currentColor" stroke-width="1.7" />
+                </svg>
+              </span>
+              <span>
+                <span class="block text-body font-bold text-tertiary-50">Carte bancaire</span>
+                <span class="mt-0.5 block text-[11px] text-tertiary-800">
+                  {{ cardAvailable ? 'Débit immédiat, paiement sécurisé.' : 'Pas encore activé sur ce site.' }}
+                </span>
+              </span>
+            </button>
 
-          <div class="mt-5">
-            <CardPayment
-              ref="card"
-              :amount="total"
-              currency="CAD"
-              :active="openStep === 3"
-              @update:complete="cardDone = $event"
-            />
+            <button
+              type="button"
+              role="radio"
+              :aria-checked="paymentMethod === 'cod'"
+              :class="[payOption, paymentMethod === 'cod' ? payOptionOn : payOptionOff]"
+              @click="paymentMethod = 'cod'"
+            >
+              <span class="mt-0.5 shrink-0 text-secondary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M2.75 6.5h14v9.25h-14z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                  <path d="M16.75 10h2.6l1.9 2.6v3.15h-4.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                  <circle cx="7" cy="18" r="1.9" stroke="currentColor" stroke-width="1.7" />
+                  <circle cx="17" cy="18" r="1.9" stroke="currentColor" stroke-width="1.7" />
+                </svg>
+              </span>
+              <span>
+                <span class="block text-body font-bold text-tertiary-50">À la livraison</span>
+                <span class="mt-0.5 block text-[11px] text-tertiary-800">
+                  Vous réglez au livreur, à la réception.
+                </span>
+              </span>
+            </button>
           </div>
+
+          <!-- Carte : les champs vivent chez Stripe, dans son iframe. -->
+          <template v-if="paymentMethod === 'card'">
+            <p class="mt-5 flex items-start gap-2 text-[11px] text-tertiary-800">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" class="mt-0.5 shrink-0 text-secondary" aria-hidden="true">
+                <path d="M10 1.8 3.5 4.4v4.9c0 4 2.8 7.2 6.5 8.9 3.7-1.7 6.5-4.9 6.5-8.9V4.4L10 1.8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+              </svg>
+              Vos données bancaires sont transmises chiffrées à notre prestataire de paiement. Ce site ne les voit jamais.
+            </p>
+
+            <div class="mt-5">
+              <CardPayment
+                ref="card"
+                :amount="total"
+                currency="CAD"
+                :active="openStep === 3"
+                @update:complete="cardDone = $event"
+              />
+            </div>
+          </template>
+
+          <!-- Livraison : rien à saisir, mais il faut dire ce qui va se passer. -->
+          <p v-else class="mt-5 rounded-xl border border-tertiary-500/15 p-4 text-[11px] text-tertiary-800">
+            Votre commande part en préparation dès sa validation. Vous réglez
+            {{ formatPrice(total) }} au livreur à la réception, en espèces ou par
+            carte selon ce qu'il accepte. Aucune information bancaire ne vous est
+            demandée ici.
+          </p>
         </CheckoutStep>
 
         <!-- Champ piège anti-robot : hors écran, jamais rempli par un humain. -->
@@ -463,7 +573,11 @@ useSeo({
           class="btn-primary mt-2 w-full justify-center py-3.5"
           :disabled="paying || !canPay"
         >
-          {{ paying ? 'Paiement en cours…' : `Payer ${formatPrice(total)}` }}
+          {{
+            paying
+              ? (paymentMethod === 'cod' ? 'Validation en cours…' : 'Paiement en cours…')
+              : (paymentMethod === 'cod' ? `Valider ma commande — ${formatPrice(total)}` : `Payer ${formatPrice(total)}`)
+          }}
         </button>
 
         <!-- Ce qui retient encore le paiement, nommé plutôt que deviné. -->

@@ -489,11 +489,21 @@ export async function createOrder(payload: {
   shipping: WooAddress
   shippingLine?: { method_id: string, method_title: string, total: string }
   customerNote?: string
+  /**
+   * Moyen de paiement enregistré sur la commande.
+   *
+   * Par défaut la carte, en attente de règlement. Le paiement à la livraison
+   * passe directement en « en traitement » : il n'y a pas d'encaissement à
+   * attendre, la commande part en préparation et le client règle au livreur.
+   */
+  payment?: { method: string, title: string, status: WooOrder['status'] }
 }): Promise<WooOrder> {
+  const payment = payload.payment ?? { method: 'stripe', title: 'Carte bancaire', status: 'pending' as const }
+
   return wooMutate<WooOrder>('POST', 'orders', {
-    status: 'pending',
-    payment_method: 'stripe',
-    payment_method_title: 'Carte bancaire',
+    status: payment.status,
+    payment_method: payment.method,
+    payment_method_title: payment.title,
     line_items: payload.lineItems,
     billing: payload.billing,
     shipping: payload.shipping,

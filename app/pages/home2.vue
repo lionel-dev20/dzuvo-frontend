@@ -31,7 +31,6 @@ useSeo({
     <KeyPointsSection />
     <FeaturedCategoriesSection />
     <ProductCarouselSection />
-    <DeliveryMapSection />
     <PromoBannersSection />
     <TestimonialsSection />
   </div>
