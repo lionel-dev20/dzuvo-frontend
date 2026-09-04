@@ -59,9 +59,21 @@ export function useFaqSchema(faq: { question: string, answer: string }[]) {
   })
 }
 
-/** Injecte un bloc <script type="application/ld+json">. */
+/**
+ * Injecte un bloc <script type="application/ld+json">.
+ *
+ * `JSON.stringify` n'échappe pas `<` : une valeur contenant `</script>`
+ * refermerait la balise et tout ce qui suit deviendrait du HTML exécutable.
+ * Aujourd'hui les données viennent d'un fichier de configuration, donc rien ne
+ * peut arriver — mais le jour où un nom de produit venu de WooCommerce entre
+ * ici, ce qui est l'usage normal de schema.org, le nom devient une porte
+ * d'entrée. On échappe donc à la source plutôt que de compter sur ce que ces
+ * données seront demain.
+ */
 function useJsonLd(data: Record<string, unknown>) {
+  const json = JSON.stringify(data).replace(/</g, '\\u003c')
+
   useHead({
-    script: [{ type: 'application/ld+json', innerHTML: JSON.stringify(data) }],
+    script: [{ type: 'application/ld+json', innerHTML: json }],
   })
 }

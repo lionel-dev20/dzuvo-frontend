@@ -48,6 +48,17 @@ export default defineNuxtConfig({
      * vider en boucle.
      */
     revalidateSecret: '', // NUXT_REVALIDATE_SECRET
+
+    /*
+     * Le site est-il servi derrière un répartiteur de confiance (Cloudflare,
+     * nginx, load balancer d'hébergeur) ?
+     *
+     * À `false`, `X-Forwarded-For` est ignoré : c'est un en-tête que le client
+     * écrit lui-même, et le croire rend la limitation de débit inopérante.
+     * À n'activer qu'une fois certain qu'un intermédiaire l'écrase — sinon
+     * l'activer revient exactement à retirer la protection.
+     */
+    trustProxy: false, // NUXT_TRUST_PROXY=true
     public: {
       siteUrl: '', // NUXT_PUBLIC_SITE_URL
       analyticsId: '', // NUXT_PUBLIC_ANALYTICS_ID
@@ -130,6 +141,52 @@ export default defineNuxtConfig({
    * Corollaire inchangé : le site a besoin d'un serveur Node
    * (`.output/server`). Un export statique (`nuxt generate`) figerait tout.
    */
+
+  /*
+   * En-têtes de sécurité, posés sur toutes les réponses.
+   *
+   * Le site n'en émettait aucun. Le plus coûteux de ces oublis est
+   * `frame-ancestors` : sans lui, la page de connexion et le tunnel de commande
+   * peuvent être encadrés par un site tiers qui superpose ses propres boutons.
+   * Le visiteur croit cliquer sur « Payer », il clique ailleurs — sur des écrans
+   * qui manipulent un mot de passe et une carte bancaire.
+   *
+   * La politique s'arrête volontairement à ce qui se pose sans risque de casse.
+   * Un `script-src` complet exigerait un nonce sur les scripts que Nuxt insère
+   * lui-même (la charge utile du rendu serveur) : mal réglé, il ne protège
+   * rien et laisse une page blanche. Il se rajoutera avec les tests qui vont
+   * avec, pas au détour d'une passe de sécurité.
+   *
+   * `frame-src` reste ouvert : les champs de carte sont des iframes de Stripe,
+   * et les fermer reviendrait à supprimer le paiement.
+   */
+  routeRules: {
+    '/**': {
+      headers: {
+        'content-security-policy': [
+          "frame-ancestors 'none'",
+          "base-uri 'self'",
+          "object-src 'none'",
+          "form-action 'self'",
+        ].join('; '),
+        // Doublon volontaire de `frame-ancestors`, pour les navigateurs anciens.
+        'x-frame-options': 'DENY',
+        // Empêche un fichier envoyé par un visiteur d'être réinterprété en HTML.
+        'x-content-type-options': 'nosniff',
+        // L'adresse d'une page de commande ne doit pas suivre le visiteur ailleurs.
+        'referrer-policy': 'strict-origin-when-cross-origin',
+        /* Seule la géolocalisation est utilisée aujourd'hui (choix de la ville
+           de livraison). `payment` reste ouvert à Stripe : fermé, il ferait
+           échouer un jour Apple Pay ou Google Pay sans le moindre message
+           d'erreur — le genre de panne qu'on ne rattache jamais à sa cause. */
+        'permissions-policy': 'camera=(), microphone=(), geolocation=(self), payment=(self "https://js.stripe.com")',
+        /* Sans `includeSubDomains` : un sous-domaine encore servi en HTTP
+           deviendrait inaccessible, et l'en-tête est mémorisé un an par le
+           navigateur — une erreur ici ne se rattrape pas facilement. */
+        'strict-transport-security': 'max-age=31536000',
+      },
+    },
+  },
 
   nitro: {
     prerender: {

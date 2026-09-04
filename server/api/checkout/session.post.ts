@@ -6,6 +6,8 @@ import { buildLines, normalizeItems } from '../../utils/cart'
 import { COUNTRY, toWooAddress } from '../../utils/checkout'
 import { resolveShipping, shippingMethodsFor } from '../../utils/shipping'
 import { isStripeConfigured, stripeClient, toStripeAmount } from '../../utils/stripe'
+import { isCodEnabled } from './payment-methods.get'
+import { checkRateLimit } from '../../utils/rate-limit'
 import { cancelOrder, createOrder, fetchProductsByIds, isConfigured } from '../../utils/woocommerce'
 
 /**
@@ -38,6 +40,21 @@ export default defineEventHandler(async (event) => {
    */
   const paymentMethod: PaymentMethod = body?.paymentMethod === 'cod' ? 'cod' : 'card'
 
+  /*
+   * Le paiement à la livraison suit l'interrupteur de WooCommerce.
+   *
+   * Le contrôle est rejoué ici et pas seulement à l'écran : retirer un bouton
+   * ne retire pas la possibilité d'appeler cette adresse à la main. Sans lui,
+   * une commande serait créée avec un moyen que la boutique n'accepte plus.
+   */
+  if (paymentMethod === 'cod' && !(await isCodEnabled())) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: 'Payment method unavailable',
+      message: 'Le paiement à la livraison n’est plus proposé. Merci de régler par carte.',
+    })
+  }
+
   // La carte exige Stripe ; le paiement à la livraison n'en a pas besoin.
   if (paymentMethod === 'card' && !isStripeConfigured()) {
     throw createError({
@@ -49,8 +66,17 @@ export default defineEventHandler(async (event) => {
 
   // Champ piège : un robot le remplit, un visiteur jamais.
   if (body?.honeypot) {
-    throw createError({ statusCode: 400, statusMessage: 'Requête rejetée' })
+    throw createError({ statusCode: 400, statusMessage: 'Rejected' })
   }
+
+  /*
+   * Chaque appel qui va jusqu'au bout crée une **vraie commande** dans la
+   * boutique. Sans plafond, une boucle suffisait à la remplir de commandes
+   * fantômes en attente, chacune consommant un appel WooCommerce. Le seuil est
+   * plus haut que pour la connexion : reprendre son paiement après une carte
+   * refusée ou un changement d'adresse est un geste légitime et fréquent.
+   */
+  checkRateLimit(event, 'checkout')
 
   /* ---------- Adresse ---------- */
 

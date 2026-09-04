@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CheckoutAddress, PaymentMethod } from '#shared/types/checkout'
+import type { PaymentOption } from '~~/server/api/checkout/payment-methods.get'
 import type { FieldErrors } from '#shared/types/forms'
 import { CANADA_PROVINCES, formatPostcodeCA, validateAddress } from '#shared/utils/validation'
 import { deliveryCities, findCity } from '#shared/config/cities'
@@ -217,20 +218,45 @@ const cardDone = ref(false)
 /*
  * Moyens de paiement.
  *
- * La carte n'est proposée que si Stripe est configuré : offrir un choix qui
- * échouera à la validation vaut moins que ne pas l'offrir. Sans Stripe, le
- * paiement à la livraison est retenu d'emblée — la boutique l'accepte, il n'y
- * a donc aucune raison de bloquer la commande.
+ * Ils viennent du serveur, qui interroge WooCommerce — ils n'étaient pas
+ * écrits en dur ici par hasard, mais c'était une erreur : désactiver
+ * « Paiement à la livraison » dans l'administration ne changeait rien à
+ * l'écran. Un réglage qui existe mais que personne ne lit est pire qu'un
+ * réglage absent, puisqu'on croit avoir agi.
+ *
+ * L'appel est différé au montage : cette page n'est pas mise en cache, mais
+ * la faire attendre au rendu serveur retarderait tout l'écran pour une donnée
+ * qui n'apparaît qu'à la troisième étape.
  */
-const config = useRuntimeConfig()
-const cardAvailable = computed(() => Boolean(config.public.stripePublishableKey))
-const paymentMethod = ref<PaymentMethod>(cardAvailable.value ? 'card' : 'cod')
+const { data: paymentData } = await useFetch<{ methods: PaymentOption[] }>(
+  '/api/checkout/payment-methods',
+  { key: 'checkout-payment-methods', default: () => ({ methods: [] }) },
+)
+
+const paymentOptions = computed(() => paymentData.value?.methods ?? [])
+const cardAvailable = computed(() => paymentOptions.value.some(m => m.id === 'card'))
+
+/**
+ * Moyen retenu.
+ *
+ * Il suit la liste plutôt que de la précéder : forcer un moyen que la boutique
+ * ne propose plus mènerait à un refus au moment de payer, après que le
+ * visiteur a tout rempli.
+ */
+const paymentMethod = ref<PaymentMethod>('card')
+
+watch(paymentOptions, (options) => {
+  if (!options.length) return
+  if (!options.some(m => m.id === paymentMethod.value)) {
+    paymentMethod.value = options[0]!.id
+  }
+}, { immediate: true })
 
 /** Le règlement à la livraison n'a rien à saisir : l'étape est complète d'office. */
 const paymentDone = computed(() => paymentMethod.value === 'cod' || cardDone.value)
 
 const paymentSummary = computed(() =>
-  paymentMethod.value === 'cod' ? 'Paiement à la livraison' : 'Carte bancaire',
+  paymentOptions.value.find(m => m.id === paymentMethod.value)?.label ?? '',
 )
 
 const payOption = 'flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45'
@@ -573,38 +599,29 @@ useSeo({
         >
           <!-- Choix du moyen. Deux options seulement : régler maintenant, ou
                régler au livreur. -->
-          <div class="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Moyen de paiement">
+          <!-- Un seul moyen proposé : il n'y a rien à choisir, on le dit
+               plutôt que d'afficher un groupe de boutons à une seule entrée. -->
+          <div
+            v-if="paymentOptions.length > 1"
+            class="grid gap-3 sm:grid-cols-2"
+            role="radiogroup"
+            aria-label="Moyen de paiement"
+          >
             <button
+              v-for="option in paymentOptions"
+              :key="option.id"
               type="button"
               role="radio"
-              :aria-checked="paymentMethod === 'card'"
-              :disabled="!cardAvailable"
-              :class="[payOption, paymentMethod === 'card' ? payOptionOn : payOptionOff]"
-              @click="paymentMethod = 'card'"
+              :aria-checked="paymentMethod === option.id"
+              :class="[payOption, paymentMethod === option.id ? payOptionOn : payOptionOff]"
+              @click="paymentMethod = option.id"
             >
               <span class="mt-0.5 shrink-0 text-secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <svg v-if="option.id === 'card'" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="2.75" y="5" width="18.5" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7" />
                   <path d="M2.75 9.5h18.5" stroke="currentColor" stroke-width="1.7" />
                 </svg>
-              </span>
-              <span>
-                <span class="block text-body font-bold text-tertiary-50">Carte bancaire</span>
-                <span class="mt-0.5 block text-[11px] text-tertiary-800">
-                  {{ cardAvailable ? 'Débit immédiat, paiement sécurisé.' : 'Pas encore activé sur ce site.' }}
-                </span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              role="radio"
-              :aria-checked="paymentMethod === 'cod'"
-              :class="[payOption, paymentMethod === 'cod' ? payOptionOn : payOptionOff]"
-              @click="paymentMethod = 'cod'"
-            >
-              <span class="mt-0.5 shrink-0 text-secondary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M2.75 6.5h14v9.25h-14z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
                   <path d="M16.75 10h2.6l1.9 2.6v3.15h-4.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
                   <circle cx="7" cy="18" r="1.9" stroke="currentColor" stroke-width="1.7" />
@@ -612,13 +629,22 @@ useSeo({
                 </svg>
               </span>
               <span>
-                <span class="block text-body font-bold text-tertiary-50">À la livraison</span>
-                <span class="mt-0.5 block text-[11px] text-tertiary-800">
-                  Vous réglez au livreur, à la réception.
-                </span>
+                <span class="block text-body font-bold text-tertiary-50">{{ option.label }}</span>
+                <span class="mt-0.5 block text-[11px] text-tertiary-800">{{ option.hint }}</span>
               </span>
             </button>
           </div>
+
+          <!-- Aucun moyen disponible : la boutique n'en propose plus, ou elle
+               ne répond pas. Le dire vaut mieux qu'un écran vide. -->
+          <p
+            v-else-if="!paymentOptions.length"
+            class="rounded-xl border border-secondary/40 bg-secondary/8 p-4 text-[13px] text-tertiary-500"
+            role="alert"
+          >
+            Aucun moyen de paiement n’est disponible pour le moment. Merci de
+            réessayer dans quelques instants.
+          </p>
 
           <!-- Carte : les champs vivent chez Stripe, dans son iframe. -->
           <template v-if="paymentMethod === 'card'">
@@ -639,7 +665,10 @@ useSeo({
           </template>
 
           <!-- Livraison : rien à saisir, mais il faut dire ce qui va se passer. -->
-          <p v-else class="mt-5 rounded-xl border border-tertiary-500/15 p-4 text-[11px] text-tertiary-800">
+          <p
+            v-else-if="paymentMethod === 'cod'"
+            class="mt-5 rounded-xl border border-tertiary-500/15 p-4 text-[11px] text-tertiary-800"
+          >
             Votre commande part en préparation dès sa validation. Vous réglez
             {{ formatPrice(total) }} au livreur à la réception, en espèces ou par
             carte selon ce qu'il accepte. Aucune information bancaire ne vous est
