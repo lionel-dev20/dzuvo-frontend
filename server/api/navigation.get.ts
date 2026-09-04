@@ -1,4 +1,5 @@
 import type { NavItem } from '#shared/types/navigation'
+import { cachedWp } from '../utils/wp-cache'
 import { fetchWpMenu } from '../utils/wp-menu'
 
 /**
@@ -17,36 +18,34 @@ interface NavigationResult {
   source: 'wordpress' | 'indisponible'
 }
 
-/* Un menu change rarement : le relire à chaque page serait un appel réseau de
-   trop sur le chemin critique du rendu. Un échec, lui, ne se garde qu'un
-   instant — le temps d'éviter une rafale d'appels, pas de faire durer la
-   panne.
+/*
+ * Un menu change rarement : le relire à chaque page serait un appel réseau de
+ * trop sur le chemin critique du rendu. Un échec, lui, ne se garde qu'un
+ * instant — le temps d'éviter une rafale d'appels, pas de faire durer la panne.
  *
- * Une minute, et non cinq : ce cache-ci s'ajoute à celui des pages (`swr` dans
- * nuxt.config). Deux fois cinq minutes, et une correction de menu peut mettre
- * dix minutes à paraître — assez pour croire que rien ne fonctionne. Le coût
- * est négligeable : au pire un appel par minute, quel que soit le nombre de
- * visiteurs. */
-const cache = { value: null as NavigationResult | null, expiresAt: 0 }
-const TTL = 60 * 1000
+ * Cinq minutes plutôt qu'une, désormais : ce cache ne se cumule plus avec
+ * celui des pages, qui n'existe plus (voir nuxt.config), et WordPress purge
+ * lui-même par `/api/revalidate` dès qu'un menu change. Le délai n'est donc
+ * plus ce qui décide du temps d'apparition d'une correction — il ne sert qu'à
+ * borner le trafic vers WordPress si la purge n'arrive jamais.
+ */
+export const NAVIGATION_CACHE_KEY = 'navigation'
+const TTL = 5 * 60 * 1000
 const TTL_ERROR = 15 * 1000
 
 export default defineEventHandler(async (): Promise<NavigationResult> => {
-  if (cache.value && cache.expiresAt > Date.now()) return cache.value
+  return cachedWp<NavigationResult>(NAVIGATION_CACHE_KEY, async () => {
+    try {
+      const items = await fetchWpMenu('dzuvo-primary')
+      if (items?.length) return { value: { items, source: 'wordpress' }, isError: false }
 
-  let result: NavigationResult = { items: [], source: 'indisponible' }
+      console.warn('[navigation] aucun menu assigné à l’emplacement dzuvo-primary')
+    }
+    catch (error) {
+      // WordPress muet : la page se rend quand même, sans menu.
+      console.error('[navigation] menu WordPress indisponible', error)
+    }
 
-  try {
-    const items = await fetchWpMenu('dzuvo-primary')
-    if (items?.length) result = { items, source: 'wordpress' }
-    else console.warn('[navigation] aucun menu assigné à l’emplacement dzuvo-primary')
-  }
-  catch (error) {
-    // WordPress muet : la page se rend quand même, sans menu.
-    console.error('[navigation] menu WordPress indisponible', error)
-  }
-
-  cache.value = result
-  cache.expiresAt = Date.now() + (result.source === 'wordpress' ? TTL : TTL_ERROR)
-  return result
+    return { value: { items: [], source: 'indisponible' }, isError: true }
+  }, { ttl: TTL, ttlOnError: TTL_ERROR })
 })

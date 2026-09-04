@@ -131,7 +131,7 @@ const commitments = [
           <h3 class="lg:mb-4">
             <button
               type="button"
-              class="flex w-full cursor-pointer items-center justify-between gap-3 py-4 text-left text-h4 font-bold text-tertiary-50 uppercase lg:cursor-default lg:py-0"
+              class="flex w-full items-center justify-between gap-3 py-4 text-left text-h4 font-bold text-tertiary-50 uppercase lg:cursor-default lg:py-0"
               :aria-expanded="isOpen(column.id)"
               :aria-controls="`footer-${column.id}`"
               @click="toggle(column.id)"
@@ -159,7 +159,7 @@ const commitments = [
             </li>
             <li v-if="column.id === 'informations'">
               <!-- Ouvre le gestionnaire de consentement, ce n'est pas une page. -->
-              <button type="button" class="cursor-pointer text-body text-tertiary-800 transition-colors hover:text-secondary">
+              <button type="button" class="text-body text-tertiary-800 transition-colors hover:text-secondary">
                 Paramètres des cookies
               </button>
             </li>
@@ -171,7 +171,7 @@ const commitments = [
           <h3 class="lg:mb-4">
             <button
               type="button"
-              class="flex w-full cursor-pointer items-center justify-between gap-3 py-4 text-left text-h4 font-bold text-tertiary-50 uppercase lg:cursor-default lg:py-0"
+              class="flex w-full items-center justify-between gap-3 py-4 text-left text-h4 font-bold text-tertiary-50 uppercase lg:cursor-default lg:py-0"
               :aria-expanded="isOpen('contact')"
               aria-controls="footer-contact"
               @click="toggle('contact')"
@@ -207,7 +207,7 @@ const commitments = [
                   target="_blank"
                   rel="noopener"
                   :aria-label="network.label"
-                  class="grid size-10 place-items-center rounded-full bg-tertiary-500/8 text-tertiary-500 transition-colors hover:bg-secondary hover:text-tertiary-50"
+                  class="grid size-10 place-items-center rounded-full bg-tertiary-500/8 text-tertiary-500 transition-colors hover:bg-secondary hover:text-on-accent"
                 >
                   <svg v-if="network.id === 'facebook'" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M14 9V7.2c0-.8.2-1.2 1.4-1.2H17V3h-2.6C11.2 3 10 4.5 10 7v2H8v3h2v9h4v-9h2.7l.3-3z" />
@@ -254,7 +254,7 @@ const commitments = [
               </button>
             </div>
 
-            <label class="flex cursor-pointer items-start gap-2.5 text-xs text-tertiary-800">
+            <label class="flex items-start gap-2.5 text-xs text-tertiary-800">
               <input v-model="consent" type="checkbox" class="mt-0.5 size-4 shrink-0 accent-secondary">
               <span>J’accepte de recevoir les communications de DZUVO.</span>
             </label>

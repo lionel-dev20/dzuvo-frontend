@@ -36,7 +36,7 @@ const linkOf = (item: { to?: string }) => item.to || '/categories'
 
 /* Habillage commun aux tuiles : surface surélevée sur le fond sombre. */
 const tile = 'group relative flex h-full flex-col overflow-hidden rounded-2xl bg-primary transition-transform duration-300 hover:z-10 hover:scale-105'
-const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-500/10 text-tertiary-500 transition-colors group-hover:bg-secondary group-hover:text-tertiary-50'
+const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-500/10 text-tertiary-500 transition-colors group-hover:bg-secondary group-hover:text-on-accent'
 </script>
 
 <template>
@@ -70,7 +70,7 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
 
             <div v-if="card.oldPrice" class="mt-1 flex items-center gap-2">
               <span class="text-body text-tertiary-800 line-through">{{ card.oldPrice }}</span>
-              <span v-if="card.discount" class="rounded bg-secondary px-1.5 py-0.5 text-xs font-bold text-tertiary-50">
+              <span v-if="card.discount" class="rounded bg-secondary px-1.5 py-0.5 text-xs font-bold text-on-accent">
                 {{ card.discount }}
               </span>
             </div>
@@ -122,7 +122,7 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
               <div>
                 <p
                   v-if="spotlight.ribbon"
-                  class="mb-5 inline-block -rotate-2 rounded bg-secondary px-3 py-1.5 text-xs font-bold text-tertiary-50 uppercase"
+                  class="mb-5 inline-block -rotate-2 rounded bg-secondary px-3 py-1.5 text-xs font-bold text-on-accent uppercase"
                 >
                   {{ spotlight.ribbon }}
                 </p>

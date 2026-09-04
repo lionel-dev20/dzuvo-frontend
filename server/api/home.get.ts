@@ -1,5 +1,6 @@
 import type { CatalogProduct } from '#shared/types/catalog'
 import type { HomeContent } from '#shared/types/home'
+import { cachedWp } from '../utils/wp-cache'
 import { fetchWpHome } from '../utils/wp-home'
 import { fetchProductsByIds, isConfigured } from '../utils/woocommerce'
 
@@ -28,35 +29,35 @@ const EMPTY: HomeContent = {
   source: 'indisponible',
 }
 
-/* Mêmes durées que la navigation : un contenu servi vaut une minute, un échec
-   quinze secondes — le temps d'éviter une rafale d'appels, pas de faire durer
-   la panne. Une minute parce que ce cache s'ajoute à celui de la page elle-même
-   (`swr` dans nuxt.config) : deux caches de cinq minutes se cumuleraient. */
-const cache = { value: null as HomeContent | null, expiresAt: 0 }
-const TTL = 60 * 1000
+/* Mêmes durées que la navigation : cinq minutes pour un contenu servi, quinze
+   secondes pour un échec — le temps d'éviter une rafale d'appels, pas de faire
+   durer la panne. Ce délai ne décide plus du temps d'apparition d'une
+   modification : WordPress purge ce cache par `/api/revalidate` à chaque
+   publication. */
+export const HOME_CACHE_KEY = 'home'
+const TTL = 5 * 60 * 1000
 const TTL_ERROR = 15 * 1000
 
 export default defineEventHandler(async (): Promise<HomeContent> => {
-  if (cache.value && cache.expiresAt > Date.now()) return cache.value
+  return cachedWp<HomeContent>(HOME_CACHE_KEY, async () => {
+    try {
+      const content = await fetchWpHome()
 
-  let result: HomeContent = EMPTY
-
-  try {
-    const content = await fetchWpHome()
-
-    if (content) {
-      const { productIds, ...sections } = content
-      result = { ...sections, products: await resolveProducts(productIds), source: 'wordpress' }
+      if (content) {
+        const { productIds, ...sections } = content
+        return {
+          value: { ...sections, products: await resolveProducts(productIds), source: 'wordpress' },
+          isError: false,
+        }
+      }
     }
-  }
-  catch (error) {
-    // WordPress muet : la page se rend avec le contenu livré avec le site.
-    console.error('[home] contenu WordPress indisponible', error)
-  }
+    catch (error) {
+      // WordPress muet : la page se rend avec le contenu livré avec le site.
+      console.error('[home] contenu WordPress indisponible', error)
+    }
 
-  cache.value = result
-  cache.expiresAt = Date.now() + (result.source === 'wordpress' ? TTL : TTL_ERROR)
-  return result
+    return { value: EMPTY, isError: true }
+  }, { ttl: TTL, ttlOnError: TTL_ERROR })
 })
 
 /**

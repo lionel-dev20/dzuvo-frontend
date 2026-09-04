@@ -52,7 +52,23 @@
   --color-secondary-dark-active: #6f0102;
   --color-secondary-darker: #560102;
 
-  /* ---------- Tertiaire (textes sur fond sombre) ---------- */
+  /*
+   * Texte posé sur une surface de couleur — le rouge de marque, le vert de
+   * validation, une pastille de remise.
+   *
+   * Ce jeton est le seul de l'échelle des textes à ne PAS basculer avec le
+   * thème, et c'est tout son intérêt. Les autres suivent le fond de page :
+   * `tertiary-50` est blanc sur fond sombre et noir sur fond clair, ce qui est
+   * juste tant que le texte repose sur la page. Sur un aplat rouge, non — le
+   * rouge, lui, ne change pas d'un thème à l'autre, et le texte y virait au
+   * noir dès qu'on passait en thème clair.
+   *
+   * Règle : dès qu'un fond garde sa couleur quel que soit le thème, son texte
+   * doit la garder aussi.
+   */
+  --color-on-accent: #ffffff;
+
+  /* ---------- Tertiaire (textes sur fond de page) ---------- */
   --color-tertiary-50: #ffffff;
   --color-tertiary-100: #fffffe;
   --color-tertiary-200: #fffffe;
@@ -91,26 +107,50 @@
     to { transform: translateX(0); }
   }
 
-  /* ---------- Ombres ---------- */
-  /* Déclarées en jetons pour qu'elles suivent le thème : une ombre noire à
-     50 % ne se voit pas sur fond sombre, mais salit un fond clair. */
-  --shadow-panel: 0 16px 40px rgb(0 0 0 / 0.5);
-  --shadow-menu: 0 24px 60px rgb(0 0 0 / 0.55);
-  --shadow-bar: 0 8px 24px rgb(0 0 0 / 0.4);
-  --shadow-drawer: 0 0 60px rgb(0 0 0 / 0.6);
-  --shadow-drawer-left: -12px 0 40px rgb(0 0 0 / 0.5);
+  /* Les ombres ne sont pas ici : voir le bloc `:root` sous ce `@theme`. */
 
   /* ---------- Rayons ---------- */
   /* Plafond imposé par le guide : 12px sur les boutons. */
   --radius-btn: 12px;
 
   /* ---------- Structure ---------- */
-  --spacing-header: 96px; /* logo 72px + 12px de padding vertical */
+  /* Hauteur de la barre compacte — celle de toutes les pages hors accueil, et
+     celle de l'accueil une fois le hero passé : logo 48px + 2 × 12px de
+     padding. Sert aux éléments collants (récapitulatif du panier, de la
+     commande) et à `scroll-padding-top`, pour qu'une ancre ne s'arrête pas
+     sous la barre. */
+  --spacing-header: 72px;
 
   /* Seuil de bascule du header : en dessous, la nav desktop ne tient plus
      (logo + ville + 5 liens + actions ≈ 1213px, plus les gouttières).
      À réajuster si la taille du logo ou le padding du header changent. */
   --breakpoint-nav: 1440px;
+}
+
+/**
+ * Ombres — hors de `@theme`, et c'est indispensable.
+ *
+ * Tailwind v4 traite le préfixe `--shadow-*` à part : il **fige** la valeur
+ * dans la classe qu'il génère (`.shadow-bar { --tw-shadow: 0 3px 12px … }`)
+ * au lieu d'écrire `var(--shadow-bar)`. Une redéfinition sous `.theme-light`
+ * n'avait donc aucune prise : tout le site portait les ombres noires prévues
+ * pour le fond sombre, y compris les pages claires, où une ombre noire ne
+ * suggère pas le relief — elle salit.
+ *
+ * Déclarées en variables CSS ordinaires, elles redeviennent des variables que
+ * la cascade peut remplacer. Les classes `shadow-panel`, `shadow-bar`… sont
+ * reprises à la main dans `utilities.css` : les composants ne changent pas.
+ *
+ * Volontairement discrètes. Décalage et flou sont réduits en même temps que
+ * l'opacité — une ombre large et pâle reste une tache grise autour de
+ * l'élément, seul le resserrement la fait lire comme un relief.
+ */
+:root {
+  --shadow-panel: 0 10px 24px rgb(0 0 0 / 0.28);
+  --shadow-menu: 0 14px 34px rgb(0 0 0 / 0.3);
+  --shadow-bar: 0 3px 12px rgb(0 0 0 / 0.22);
+  --shadow-drawer: 0 0 36px rgb(0 0 0 / 0.32);
+  --shadow-drawer-left: -8px 0 26px rgb(0 0 0 / 0.28);
 }
 
 /**
@@ -150,13 +190,13 @@
   --color-primary-active: #f0f0f0;
 
   /* Mêmes ombres, portées par une couleur d'encre plutôt que par du noir pur,
-     et bien plus discrètes : sur fond clair, l'ombre suggère le relief au lieu
-     de l'imposer. */
-  --shadow-panel: 0 16px 40px rgb(13 13 20 / 0.12);
-  --shadow-menu: 0 24px 60px rgb(13 13 20 / 0.14);
-  --shadow-bar: 0 8px 24px rgb(13 13 20 / 0.08);
-  --shadow-drawer: 0 0 60px rgb(13 13 20 / 0.16);
-  --shadow-drawer-left: -12px 0 40px rgb(13 13 20 / 0.14);
+     et plus discrètes encore que sur fond sombre : le noir se voit deux fois
+     plus sur du blanc, à opacité égale. */
+  --shadow-panel: 0 8px 20px rgb(13 13 20 / 0.06);
+  --shadow-menu: 0 12px 28px rgb(13 13 20 / 0.07);
+  --shadow-bar: 0 2px 8px rgb(13 13 20 / 0.04);
+  --shadow-drawer: 0 0 32px rgb(13 13 20 / 0.08);
+  --shadow-drawer-left: -6px 0 20px rgb(13 13 20 / 0.07);
 
   /*
    * Le rouge de marque ne bouge pas : c'est l'identité, et il porte les boutons.
@@ -165,10 +205,4 @@
    * Les messages d'erreur restent lisibles, mais doublés d'un mot, jamais
    * portés par la seule couleur.
    */
-}
-
-/* Le texte sélectionné reste blanc sur le rouge, quel que soit le thème :
-   sous `.theme-light`, `tertiary-50` est devenu noir et disparaîtrait. */
-.theme-light ::selection {
-  color: #ffffff;
 }

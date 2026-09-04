@@ -22,7 +22,7 @@ const discount = computed(() =>
     : 0,
 )
 
-const stepper = 'grid size-9 cursor-pointer place-items-center text-tertiary-500 transition-colors hover:text-secondary disabled:cursor-default disabled:opacity-30 disabled:hover:text-tertiary-500'
+const stepper = 'grid size-9 place-items-center text-tertiary-500 transition-colors hover:text-secondary disabled:cursor-default disabled:opacity-30 disabled:hover:text-tertiary-500'
 </script>
 
 <template>
@@ -66,7 +66,7 @@ const stepper = 'grid size-9 cursor-pointer place-items-center text-tertiary-500
             <span class="text-[11px] text-tertiary-800 line-through">
               {{ formatPrice(line.regularPrice * line.quantity) }}
             </span>
-            <span class="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold text-tertiary-50">
+            <span class="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold text-on-accent">
               -{{ discount }} %
             </span>
           </div>
@@ -78,7 +78,7 @@ const stepper = 'grid size-9 cursor-pointer place-items-center text-tertiary-500
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="grid size-9 cursor-pointer place-items-center rounded-btn border border-tertiary-500/15 text-tertiary-800 transition-colors hover:border-secondary hover:text-secondary"
+            class="grid size-9 place-items-center rounded-btn border border-tertiary-500/15 text-tertiary-800 transition-colors hover:border-secondary hover:text-secondary"
             :aria-label="`Retirer ${line.name} du panier`"
             @click="emit('remove')"
           >

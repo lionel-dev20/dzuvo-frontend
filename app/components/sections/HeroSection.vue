@@ -185,7 +185,7 @@ function onLeave(element: Element, done: () => void) {
           v-for="(slide, position) in slides"
           :key="slide.id"
           type="button"
-          class="group cursor-pointer px-1 py-3"
+          class="group px-1 py-3"
           :aria-label="`Voir : ${slide.eyebrow}`"
           :aria-current="position === index"
           @click="goTo(position)"

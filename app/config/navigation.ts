@@ -18,3 +18,17 @@ import type { NavItem } from '#shared/types/navigation'
  * pas une entrée de navigation à confier à l'éditeur de contenu.
  */
 export const headerCta: NavItem | null = { label: 'Créer un compte', to: '/inscription' }
+
+/**
+ * Les pages d'accueil, seules à garder le traitement d'origine : fond sombre,
+ * barre transparente posée par-dessus le hero, logo en grand.
+ *
+ * Partout ailleurs, l'en-tête n'a pas d'image derrière elle pour la porter :
+ * elle s'appuie sur le fond blanc du thème clair et se compacte, pour rendre
+ * au contenu la hauteur que le hero justifiait.
+ *
+ * Cette liste est lue à deux endroits — le gabarit, qui choisit le thème, et
+ * l'en-tête, qui choisit son allure. La partager évite qu'ils divergent : une
+ * page sombre coiffée d'une barre blanche, ou l'inverse.
+ */
+export const HOME_ROUTES = ['/', '/home2']

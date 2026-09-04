@@ -2,6 +2,7 @@ import type { RegisterPayload } from '#shared/types/forms'
 import { hasErrors, validateRegister } from '#shared/utils/validation'
 import {
   authenticate,
+  fetchAuthUser,
   registerCustomer,
   requireWooForRegister,
   setAuthCookie,
@@ -37,7 +38,11 @@ export default defineEventHandler(async (event) => {
     password: body.password,
   })
 
-  // Connexion immédiate : courriel d'abord, puis identifiant WooCommerce si besoin.
+  /*
+   * Connexion immédiate : courriel d'abord, puis identifiant WooCommerce si
+   * besoin. WordPress accepte les deux, mais un site peut être réglé pour
+   * refuser le courriel — on ne fait donc pas l'économie du second essai.
+   */
   const token = await authenticate(body.email, body.password, customer.username)
   setAuthCookie(event, token, true)
 
@@ -49,5 +54,15 @@ export default defineEventHandler(async (event) => {
     // TODO: brancher le fournisseur newsletter si configuré.
   }
 
-  return { success: true, message: 'Compte créé avec succès.' }
+  // Le profil relu depuis WordPress, et non celui renvoyé par la création :
+  // c'est le même chemin qu'à la connexion, donc le même résultat.
+  const user = await fetchAuthUser(token) ?? {
+    id: customer.id,
+    email: customer.email,
+    firstName: customer.firstName,
+    lastName: customer.lastName,
+    displayName: customer.displayName,
+  }
+
+  return { success: true, message: 'Compte créé avec succès.', user }
 })

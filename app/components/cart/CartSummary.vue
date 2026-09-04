@@ -6,7 +6,7 @@ import { formatPrice } from '#shared/utils/format'
  * Les montants viennent tous de /api/cart — rien n'est recalculé ici.
  */
 const { state, pending, error, applyCoupon, removeCoupon, checkout } = useCart()
-const { user, loaded, fetchUser } = useAuth()
+const { user, loaded, ensureUser } = useAuth()
 
 const draftCoupon = ref('')
 const couponPending = ref(false)
@@ -26,7 +26,7 @@ async function submitCoupon() {
 }
 
 onMounted(() => {
-  if (!loaded.value) fetchUser()
+  ensureUser()
 })
 </script>
 
@@ -66,7 +66,7 @@ onMounted(() => {
         >
         <button
           type="submit"
-          class="shrink-0 cursor-pointer px-1 text-[13px] font-bold text-secondary disabled:opacity-50"
+          class="shrink-0 px-1 text-[13px] font-bold text-secondary disabled:opacity-50"
           :disabled="couponPending || !draftCoupon.trim()"
         >
           {{ couponPending ? '…' : 'Appliquer' }}
@@ -78,7 +78,7 @@ onMounted(() => {
         <span class="shrink-0 text-[13px] font-bold text-secondary">{{ state.coupon.label }}</span>
         <button
           type="button"
-          class="shrink-0 cursor-pointer text-tertiary-800 transition-colors hover:text-secondary"
+          class="shrink-0 text-tertiary-800 transition-colors hover:text-secondary"
           aria-label="Retirer le code avantage"
           @click="removeCoupon()"
         >

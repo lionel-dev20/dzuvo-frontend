@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { headerCta } from '~/config/navigation'
 
+/* Session : lue par le header, partagée par `useState` — ce menu ne déclenche
+   donc aucun appel de plus, il lit le même état. */
+const { user, isLoggedIn, logout } = useAuth()
+const firstName = computed(() => user.value?.firstName?.trim() || 'Mon compte')
+
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
@@ -174,25 +179,47 @@ onMounted(() => {
         </nav>
 
         <div class="flex flex-col gap-2.5 border-t border-tertiary-500/10 px-5 py-4">
-          <NuxtLink
-            v-if="headerCta"
-            :to="headerCta.to"
-            class="btn-primary justify-center"
-            @click="emit('close')"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M14 7.7A6 6 0 012.6 12L1 15l1.7-4.3A6 6 0 1114 7.7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-            </svg>
-            {{ headerCta.label }}
-          </NuxtLink>
+          <!-- Visiteur : créer un compte, ou se connecter. -->
+          <template v-if="!isLoggedIn">
+            <NuxtLink
+              v-if="headerCta"
+              :to="headerCta.to"
+              class="btn-primary justify-center"
+              @click="emit('close')"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M14 7.7A6 6 0 012.6 12L1 15l1.7-4.3A6 6 0 1114 7.7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+              </svg>
+              {{ headerCta.label }}
+            </NuxtLink>
 
-          <NuxtLink
-            to="/connexion"
-            class="rounded-btn p-2.5 text-center text-sm font-medium text-tertiary-500 transition-colors hover:text-secondary"
-            @click="emit('close')"
-          >
-            Mon compte
-          </NuxtLink>
+            <NuxtLink
+              to="/connexion"
+              class="rounded-btn p-2.5 text-center text-sm font-medium text-tertiary-500 transition-colors hover:text-secondary"
+              @click="emit('close')"
+            >
+              Mon compte
+            </NuxtLink>
+          </template>
+
+          <!-- Client identifié : son espace, puis la sortie. -->
+          <template v-else>
+            <NuxtLink to="/compte" class="btn-primary justify-center" @click="emit('close')">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="10" cy="6.5" r="3.2" stroke="currentColor" stroke-width="1.6" />
+                <path d="M3.5 17c.9-3 3.4-4.5 6.5-4.5s5.6 1.5 6.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              {{ firstName }}
+            </NuxtLink>
+
+            <button
+              type="button"
+              class="rounded-btn p-2.5 text-center text-sm font-medium text-secondary transition-colors hover:text-secondary-hover"
+              @click="emit('close'); logout()"
+            >
+              Se déconnecter
+            </button>
+          </template>
         </div>
       </div>
     </Transition>

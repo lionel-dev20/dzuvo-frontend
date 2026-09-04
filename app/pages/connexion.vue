@@ -12,6 +12,38 @@ const status = ref<'idle' | 'pending' | 'error'>('idle')
 const feedback = ref('')
 const showPassword = ref(false)
 
+const route = useRoute()
+const { user, ensureUser, login } = useAuth()
+
+/*
+ * Où aller une fois connecté.
+ *
+ * Le middleware `auth` range l'adresse demandée dans `?redirect=` : le visiteur
+ * arrivé sur une page réservée y retourne au lieu d'atterrir sur son profil.
+ * Seuls les chemins internes sont retenus — une valeur venue de l'URL est
+ * fournie par le visiteur, et « //site-tiers.com » ou « https://… » ferait de
+ * ce formulaire un tremplin de hameçonnage vers un faux site DZUVO.
+ */
+const destination = computed(() => {
+  const target = route.query.redirect
+  if (typeof target !== 'string' || !target.startsWith('/') || target.startsWith('//')) {
+    return '/compte'
+  }
+  return target
+})
+
+/*
+ * Un client déjà connecté n'a rien à faire sur ce formulaire.
+ *
+ * Le contrôle est délibérément placé ici, et non dans un middleware : cette
+ * page est mise en cache (`swr` dans nuxt.config), et une redirection décidée
+ * au rendu serveur y serait gravée pour tous les visiteurs suivants.
+ */
+onMounted(async () => {
+  await ensureUser()
+  if (user.value) await navigateTo(destination.value, { replace: true })
+})
+
 async function submit() {
   errors.value = validateLogin(form)
   if (hasErrors(errors.value)) return
@@ -20,8 +52,8 @@ async function submit() {
   feedback.value = ''
 
   try {
-    await $fetch('/api/auth/login', { method: 'POST', body: form })
-    await navigateTo('/compte')
+    await login(form)
+    await navigateTo(destination.value)
   }
   catch (error: any) {
     status.value = 'error'
@@ -109,7 +141,7 @@ useSeo({
               >
               <button
                 type="button"
-                class="absolute inset-y-0 right-0 grid w-12 cursor-pointer place-items-center text-tertiary-800 hover:text-tertiary-500"
+                class="absolute inset-y-0 right-0 grid w-12 place-items-center text-tertiary-800 hover:text-tertiary-500"
                 :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
                 :aria-pressed="showPassword"
                 @click="showPassword = !showPassword"
@@ -129,12 +161,12 @@ useSeo({
             </p>
           </div>
 
-          <label class="flex cursor-pointer items-center gap-2.5 text-body text-tertiary-800">
+          <label class="flex items-center gap-2.5 text-body text-tertiary-800">
             <input v-model="form.remember" type="checkbox" class="size-4 shrink-0 accent-secondary">
             <span>Rester connecté</span>
           </label>
 
-          <button type="submit" class="btn-primary cursor-pointer justify-center" :disabled="status === 'pending'">
+          <button type="submit" class="btn-primary justify-center" :disabled="status === 'pending'">
             {{ status === 'pending' ? 'Connexion…' : 'Se connecter' }}
             <svg v-if="status !== 'pending'" width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
               <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -163,7 +195,10 @@ useSeo({
           </li>
         </ul>
 
-        <NuxtLink to="/inscription" class="btn-secondary cursor-pointer mt-auto justify-center pt-3">
+        <NuxtLink
+          :to="{ path: '/inscription', query: route.query.redirect ? { redirect: destination } : undefined }"
+          class="btn-secondary mt-auto justify-center pt-3"
+        >
           Créer mon compte
           <svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
             <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />

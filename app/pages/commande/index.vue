@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { PaymentMethod } from '#shared/types/checkout'
+import type { CheckoutAddress, PaymentMethod } from '#shared/types/checkout'
+import type { FieldErrors } from '#shared/types/forms'
 import { CANADA_PROVINCES, formatPostcodeCA, validateAddress } from '#shared/utils/validation'
 import { deliveryCities, findCity } from '#shared/config/cities'
 import { formatPrice } from '#shared/utils/format'
@@ -16,11 +17,11 @@ import { formatPrice } from '#shared/utils/format'
  */
 const cart = useCart()
 const {
-  address, note, shippingId, methods, method, total,
+  address, shippingId, methods, method, total,
   errors, formError, paying, honeypot,
   loadShipping, prefill, validate, openSession, confirm, reset,
 } = useCheckout()
-const { user, loaded, fetchUser } = useAuth()
+const { user, ensureUser } = useAuth()
 
 const card = useTemplateRef<{
   ready: () => boolean
@@ -40,7 +41,9 @@ watchEffect(() => {
 })
 
 onMounted(async () => {
-  if (!loaded.value) await fetchUser()
+  // Le profil renseigne le formulaire : depuis que la session porte le
+  // courriel et l'état civil, le client connecté n'a plus à les retaper.
+  await ensureUser()
   prefill(user.value)
   await loadShipping()
 })
@@ -137,8 +140,39 @@ function maybeAdvance(step: 1 | 2) {
   openStep.value = step + 1
 }
 
+/*
+ * Champs déjà quittés.
+ *
+ * Un champ ne montre son erreur qu'une fois abandonné par le visiteur. Signaler
+ * « le courriel est requis » à la première lettre tapée reviendrait à reprocher
+ * une saisie en cours ; ne rien signaler du tout laisse un bouton inerte sans
+ * raison affichée. Le bon moment est celui où le visiteur passe à autre chose.
+ */
+const touched = reactive(new Set<string>())
+
+/** Les champs d'une étape, pour les marquer d'un coup au « Continuer ». */
+const STEP_FIELDS: Record<1 | 2, string[]> = {
+  1: ['firstName', 'lastName', 'email', 'phone'],
+  2: ['address1', 'city', 'district', 'state', 'postcode'],
+}
+
+/*
+ * `focusout` et non `blur` : seul le premier remonte jusqu'au panneau, ce qui
+ * permet d'écouter les champs d'une étape en un seul endroit plutôt que d'en
+ * câbler chacun.
+ */
+function markTouched(event: FocusEvent) {
+  const name = (event.target as HTMLElement | null)?.getAttribute('name')
+  if (!name) return
+  // La saisie libre de ville porte un autre `name` que la liste déroulante —
+  // deux champs ne peuvent pas partager un identifiant — mais c'est la même
+  // erreur de validation qu'elle doit faire apparaître.
+  touched.add(name === 'city-libre' ? 'city' : name)
+}
+
 /** Saisie terminée puis sortie de l'étape : c'est le moment d'avancer. */
-function onLeave(step: 1 | 2) {
+function onLeave(step: 1 | 2, event: FocusEvent) {
+  markTouched(event)
   // Le temps que le focus se pose sur sa nouvelle cible.
   setTimeout(() => maybeAdvance(step), 0)
 }
@@ -160,8 +194,17 @@ function toggle(step: number) {
   openStep.value = openStep.value === step ? 0 : step
 }
 
-/** Bouton « Continuer » : on passe à la suite et on renonce à l'automatisme. */
+/**
+ * Bouton « Continuer » : on passe à la suite et on renonce à l'automatisme.
+ *
+ * Il vaut aussi « j'en ai fini avec cette étape » : tous ses champs deviennent
+ * signalables, y compris ceux que le visiteur n'a jamais ouverts. C'est ce qui
+ * fait apparaître le quartier manquant — la ville et la province arrivent
+ * pré-remplies depuis le bandeau, jamais le quartier, qu'aucun automatisme ne
+ * peut deviner et que rien ne signalait donc.
+ */
 function continueFrom(step: 1 | 2) {
+  for (const field of STEP_FIELDS[step]) touched.add(field)
   advanced.add(step)
   openStep.value = step + 1
 }
@@ -190,30 +233,102 @@ const paymentSummary = computed(() =>
   paymentMethod.value === 'cod' ? 'Paiement à la livraison' : 'Carte bancaire',
 )
 
-const payOption = 'flex w-full cursor-pointer items-start gap-3 rounded-xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45'
+const payOption = 'flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45'
 const payOptionOn = 'border-secondary bg-secondary/8'
 const payOptionOff = 'border-tertiary-500/15 hover:border-tertiary-500/35'
 
-const canPay = computed(() => contactDone.value && deliveryDone.value && paymentDone.value)
+/*
+ * Ce qui manque encore, champ par champ.
+ *
+ * L'ancienne version résumait toute l'étape 2 en « votre adresse de
+ * livraison ». C'était le pire moment pour rester vague : la ville et la
+ * province arrivent pré-remplies depuis le sélecteur du bandeau, mais pas le
+ * quartier, que rien ne peut deviner. Le visiteur voyait donc une adresse
+ * d'apparence complète, un bouton mort, et un message qui lui redemandait
+ * « son adresse ».
+ *
+ * L'ordre suit celui du formulaire : `validateAddress` renseigne ses clés dans
+ * l'ordre des champs.
+ */
+const FIELD_LABELS: Partial<Record<keyof CheckoutAddress, string>> = {
+  firstName: 'le prénom',
+  lastName: 'le nom',
+  email: 'le courriel',
+  phone: 'le téléphone',
+  address1: 'l’adresse',
+  city: 'la ville',
+  state: 'la province',
+  district: 'le quartier',
+  postcode: 'le code postal',
+}
 
 /**
- * Un bouton désactivé sans explication est une impasse : on nomme ce qui
- * manque encore, dans l'ordre des étapes.
+ * Le bouton n'est actif que lorsque tout est réuni.
+ *
+ * C'est tenable parce que le formulaire s'explique désormais tout seul : chaque
+ * champ quitté affiche son erreur, et `missing` nomme sous le bouton ce qui
+ * manque encore. Sans ces deux garde-fous, un bouton désactivé n'est pas une
+ * garde, c'est une impasse — l'explication n'arrivait qu'au clic, que le
+ * bouton désactivé interdisait justement.
  */
+const canPay = computed(() => contactDone.value && deliveryDone.value && paymentDone.value)
+
 const missing = computed(() => {
-  const gaps: string[] = []
-  if (!contactDone.value) gaps.push('vos coordonnées')
-  if (!deliveryDone.value) gaps.push(shippingId.value ? 'votre adresse de livraison' : 'votre adresse et votre mode de livraison')
-  if (!paymentDone.value) gaps.push('vos informations de carte')
+  const gaps = (Object.keys(invalid.value) as (keyof CheckoutAddress)[])
+    .map(key => FIELD_LABELS[key])
+    .filter((label): label is string => Boolean(label))
+
+  if (!shippingId.value) gaps.push('le mode de livraison')
+  if (!paymentDone.value) gaps.push('les informations de carte')
 
   if (!gaps.length) return ''
-  const last = gaps.pop()
-  return gaps.length ? `${gaps.join(', ')} et ${last}` : last!
+  const last = gaps.pop()!
+  return gaps.length ? `${gaps.join(', ')} et ${last}` : last
 })
+
+/**
+ * Erreurs réellement affichées.
+ *
+ * `invalid` connaît tous les manques dès le premier rendu ; n'en montrer que
+ * les champs quittés évite de couvrir de rouge un formulaire vierge. Les
+ * erreurs renvoyées par le serveur (`errors`) s'ajoutent sans condition : si la
+ * boutique refuse une valeur, le visiteur doit le voir, qu'il ait touché le
+ * champ ou non.
+ *
+ * Le calcul est réactif dans les deux sens : un champ corrigé perd sa marque à
+ * l'instant, sans attendre un nouvel envoi.
+ */
+const visibleErrors = computed<FieldErrors<CheckoutAddress>>(() => {
+  const shown: FieldErrors<CheckoutAddress> = {}
+
+  for (const [field, message] of Object.entries(invalid.value) as [keyof CheckoutAddress, string][]) {
+    if (touched.has(field)) shown[field] = message
+  }
+
+  return { ...shown, ...errors.value }
+})
+
+/*
+ * Les refus de la boutique ne survivent pas à une correction.
+ *
+ * Ils sont fusionnés sans condition ci-dessus — c'est voulu — mais rien ne les
+ * effaçait : un champ retouché aurait gardé son message d'origine jusqu'au
+ * prochain envoi, en contredisant la validation locale sous les yeux du
+ * visiteur. Dès qu'il modifie l'adresse, on rend la main aux règles locales ;
+ * le serveur rejugera à l'envoi suivant.
+ */
+watch(address, () => {
+  if (Object.keys(errors.value).length) errors.value = {}
+}, { deep: true })
 
 async function pay() {
   if (paying.value) return
   formError.value = null
+  // Le bouton n'est actif qu'une fois tout rempli, mais l'envoi peut venir
+  // d'ailleurs (touche Entrée dans un champ) : tout devient signalable.
+  for (const fields of Object.values(STEP_FIELDS)) {
+    for (const field of fields) touched.add(field)
+  }
 
   if (!validate()) {
     // Une erreur dans une étape repliée resterait invisible : on la déplie.
@@ -330,25 +445,25 @@ useSeo({
           :open="openStep === 1"
           @toggle="toggle(1)"
         >
-          <div ref="contactPanel" @focusout="onLeave(1)">
+          <div ref="contactPanel" @focusout="onLeave(1, $event)">
             <div class="grid gap-4 sm:grid-cols-2">
               <CheckoutField
                 v-model="address.firstName"
-                label="Prénom" name="firstName" autocomplete="given-name" :error="errors.firstName"
+                label="Prénom" name="firstName" autocomplete="given-name" :error="visibleErrors.firstName"
               />
               <CheckoutField
                 v-model="address.lastName"
-                label="Nom" name="lastName" autocomplete="family-name" :error="errors.lastName"
+                label="Nom" name="lastName" autocomplete="family-name" :error="visibleErrors.lastName"
               />
               <CheckoutField
                 v-model="address.email"
                 label="Courriel" name="email" type="email" inputmode="email" autocomplete="email"
-                placeholder="vous@exemple.ca" :error="errors.email"
+                placeholder="vous@exemple.ca" :error="visibleErrors.email"
               />
               <CheckoutField
                 v-model="address.phone"
                 label="Téléphone" name="phone" type="tel" inputmode="tel" autocomplete="tel"
-                placeholder="514 555 0199" :error="errors.phone"
+                placeholder="514 555 0199" :error="visibleErrors.phone"
               />
             </div>
 
@@ -371,23 +486,18 @@ useSeo({
           :open="openStep === 2"
           @toggle="toggle(2)"
         >
-          <div ref="deliveryPanel" @focusout="onLeave(2)">
+          <div ref="deliveryPanel" @focusout="onLeave(2, $event)">
             <div class="grid gap-4">
               <CheckoutField
                 v-model="address.address1"
                 label="Adresse" name="address1" autocomplete="address-line1"
-                placeholder="1250 rue Sainte-Catherine O" :error="errors.address1"
+                placeholder="1250 rue Sainte-Catherine O" :error="visibleErrors.address1"
               />
-              <CheckoutField
-                v-model="address.address2"
-                label="Appartement, bureau" name="address2" autocomplete="address-line2" optional
-              />
-
               <div class="grid gap-4 sm:grid-cols-3">
                 <!-- Ville desservie : elle fixe la province et les quartiers. -->
                 <CheckoutSelect
                   v-model="citySelection"
-                  label="Ville" name="city" :options="cityOptions" :error="errors.city"
+                  label="Ville" name="city" :options="cityOptions" :error="visibleErrors.city"
                   :hint="currentCity ? provinceName : undefined"
                 />
 
@@ -395,13 +505,13 @@ useSeo({
                 <CheckoutSelect
                   v-if="currentCity"
                   v-model="address.district"
-                  label="Quartier" name="district" :options="currentCity.districts" :error="errors.district"
+                  label="Quartier" name="district" :options="currentCity.districts" :error="visibleErrors.district"
                 />
 
                 <CheckoutField
                   v-model="address.postcode"
                   label="Code postal" name="postcode" autocomplete="postal-code"
-                  placeholder="H2X 1Y4" :error="errors.postcode"
+                  placeholder="H2X 1Y4" :error="visibleErrors.postcode"
                   @blur="normalizePostcode"
                 />
               </div>
@@ -410,20 +520,15 @@ useSeo({
               <div v-if="otherCity" class="grid gap-4 sm:grid-cols-2">
                 <CheckoutField
                   v-model="address.city"
-                  label="Votre ville" name="city-libre" autocomplete="address-level2" :error="errors.city"
+                  label="Votre ville" name="city-libre" autocomplete="address-level2" :error="visibleErrors.city"
                 />
                 <CheckoutSelect
                   v-model="address.state"
                   label="Province" name="state" autocomplete="address-level1"
                   :options="CANADA_PROVINCES.map(p => ({ value: p.code, label: p.name }))"
-                  :error="errors.state"
+                  :error="visibleErrors.state"
                 />
               </div>
-
-              <CheckoutField
-                v-model="address.company"
-                label="Entreprise" name="company" autocomplete="organization" optional
-              />
             </div>
 
             <h3 class="mt-7 text-[13px] font-bold text-tertiary-50">Mode de livraison</h3>
@@ -435,7 +540,7 @@ useSeo({
             <ul v-else class="mt-3 flex flex-col gap-2">
               <li v-for="option in methods" :key="option.id">
                 <label
-                  class="flex cursor-pointer items-center gap-3 rounded-btn border p-4 transition-colors"
+                  class="flex items-center gap-3 rounded-btn border p-4 transition-colors"
                   :class="shippingId === option.id
                     ? 'border-secondary bg-secondary/8'
                     : 'border-tertiary-500/14 hover:border-tertiary-500/30'"
@@ -451,16 +556,6 @@ useSeo({
                 </label>
               </li>
             </ul>
-
-            <div class="mt-5">
-              <label for="note" class="mb-1.5 block text-[13px] font-medium text-tertiary-600">
-                Consigne de livraison <span class="text-tertiary-800">(facultatif)</span>
-              </label>
-              <textarea
-                id="note" v-model="note" name="note" rows="2" class="field resize-y"
-                placeholder="Code d’entrée, étage, point de dépôt…"
-              />
-            </div>
 
             <button type="button" class="btn-primary mt-5" @click="continueFrom(2)">
               Continuer
@@ -537,8 +632,6 @@ useSeo({
             <div class="mt-5">
               <CardPayment
                 ref="card"
-                :amount="total"
-                currency="CAD"
                 :active="openStep === 3"
                 @update:complete="cardDone = $event"
               />
@@ -572,6 +665,7 @@ useSeo({
           type="submit"
           class="btn-primary mt-2 w-full justify-center py-3.5"
           :disabled="paying || !canPay"
+          :aria-describedby="missing ? 'commande-manques' : undefined"
         >
           {{
             paying
@@ -581,7 +675,7 @@ useSeo({
         </button>
 
         <!-- Ce qui retient encore le paiement, nommé plutôt que deviné. -->
-        <p v-if="missing" class="text-center text-[11px] text-tertiary-800" aria-live="polite">
+        <p v-if="missing" id="commande-manques" class="text-center text-[11px] text-tertiary-800" aria-live="polite">
           Il reste à renseigner {{ missing }}.
         </p>
         <p v-else class="text-center text-[11px] text-tertiary-800">

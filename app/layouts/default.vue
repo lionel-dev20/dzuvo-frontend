@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { HOME_ROUTES } from '~/config/navigation'
+
 /**
  * Gabarit de tout le site, sauf la page d'annonce.
  *
@@ -9,9 +11,8 @@
  */
 const route = useRoute()
 
-/** Les deux pages qui gardent le fond sombre : l'annonce et l'accueil boutique. */
-const DARK_ROUTES = ['/', '/home2']
-const isDark = computed(() => DARK_ROUTES.includes(route.path))
+/** L'annonce et l'accueil boutique — voir `HOME_ROUTES`. */
+const isDark = computed(() => HOME_ROUTES.includes(route.path))
 
 useHead(computed(() => ({
   htmlAttrs: { class: isDark.value ? '' : 'theme-light' },
@@ -25,7 +26,7 @@ useOrganizationSchema()
   <div class="flex min-h-dvh flex-col bg-primary-darker">
     <a
       href="#main"
-      class="absolute top-2 left-2 z-100 -translate-y-[200%] rounded-btn bg-secondary px-4 py-2 text-tertiary-50 transition-transform focus-visible:translate-y-0"
+      class="absolute top-2 left-2 z-100 -translate-y-[200%] rounded-btn bg-secondary px-4 py-2 text-on-accent transition-transform focus-visible:translate-y-0"
     >
       Aller au contenu principal
     </a>

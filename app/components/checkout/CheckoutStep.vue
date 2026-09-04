@@ -23,7 +23,7 @@ const emit = defineEmits<{ toggle: [] }>()
     <h2>
       <button
         type="button"
-        class="flex w-full cursor-pointer items-center gap-3 p-5 text-left md:p-6"
+        class="flex w-full items-center gap-3 p-5 text-left md:p-6"
         :aria-expanded="open"
         :aria-controls="`step-${step}-panel`"
         @click="emit('toggle')"
@@ -31,7 +31,7 @@ const emit = defineEmits<{ toggle: [] }>()
         <!-- La pastille passe au crochet dès que l'étape est complète. -->
         <span
           class="grid size-7 shrink-0 place-items-center rounded-full text-[13px] font-bold transition-colors"
-          :class="complete ? 'bg-green-600 text-tertiary-50' : 'bg-secondary text-tertiary-50'"
+          :class="complete ? 'bg-green-600 text-on-accent' : 'bg-secondary text-on-accent'"
           aria-hidden="true"
         >
           <svg v-if="complete" width="14" height="14" viewBox="0 0 20 20" fill="none">

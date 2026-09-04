@@ -30,7 +30,7 @@ const broken = reactive(new Set<number>())
             >
           </span>
           <span
-            class="absolute -top-2 -right-2 grid size-5 place-items-center rounded-full bg-secondary text-[11px] font-bold text-tertiary-50"
+            class="absolute -top-2 -right-2 grid size-5 place-items-center rounded-full bg-secondary text-[11px] font-bold text-on-accent"
             aria-hidden="true"
           >
             {{ line.quantity }}

@@ -44,38 +44,47 @@ export function loadStripeJs(): Promise<StripeGlobal> {
 }
 
 /**
- * Habillage des champs Stripe aux couleurs du site. Les champs de carte vivent
- * dans une iframe : seule cette API permet de les accorder à la charte.
+ * Couleurs des champs de carte.
+ *
+ * Les champs vivent dans une iframe appartenant à Stripe : aucune feuille de
+ * style du site ne les atteint, et seule cette API permet de les accorder à la
+ * charte.
+ *
+ * Les valeurs sont **lues sur le document** plutôt qu'écrites ici. C'est ce qui
+ * manquait : l'habillage était figé sur le thème sombre — fond #030014, texte
+ * blanc — alors que le tunnel de commande s'affiche en thème clair. Les champs
+ * sortaient donc en noir sur une carte blanche, seule zone de la page à ne pas
+ * suivre le thème, précisément parce qu'elle échappe à la cascade CSS.
+ *
+ * Passer par `getComputedStyle` remet l'iframe dans le même système que le
+ * reste du site : les jetons de `tokens.css` font foi, et un basculement de
+ * thème est suivi sans qu'aucune valeur ne soit recopiée ici.
+ *
+ * Seul le **texte** est habillé de la sorte. Le cadre, le fond et l'espacement
+ * viennent du conteneur, qui porte l'utilitaire `field` comme n'importe quel
+ * autre champ du formulaire — c'est ce qui garantit que la carte ressemble au
+ * reste du tunnel plutôt qu'à un greffon.
  */
-export function stripeAppearance() {
+export function stripeCardStyle() {
+  const css = getComputedStyle(document.documentElement)
+  const token = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback
+
+  const ink = token('--color-tertiary-50', '#0d0d14')
+  const muted = token('--color-tertiary-800', '#6e6e78')
+  const danger = token('--color-secondary', '#f70205')
+
   return {
-    theme: 'night' as const,
-    variables: {
-      colorPrimary: '#f70205',
-      colorBackground: '#030014',
-      colorText: '#fefffd',
-      colorTextSecondary: '#8c8c8b',
-      colorTextPlaceholder: '#6b6b6a',
-      colorDanger: '#f70205',
+    base: {
+      color: ink,
       fontFamily: '"DM Sans", ui-sans-serif, system-ui, sans-serif',
-      fontSizeBase: '15px',
-      borderRadius: '12px',
-      spacingUnit: '4px',
+      fontSize: '15px',
+      fontSmoothing: 'antialiased',
+      iconColor: muted,
+      '::placeholder': { color: muted },
     },
-    rules: {
-      '.Input': {
-        border: '1px solid rgba(254, 255, 253, 0.14)',
-        boxShadow: 'none',
-        padding: '12px 16px',
-      },
-      '.Input:focus': {
-        border: '1px solid #f70205',
-        boxShadow: 'none',
-      },
-      '.Label': {
-        fontWeight: '500',
-        marginBottom: '6px',
-      },
+    invalid: {
+      color: danger,
+      iconColor: danger,
     },
   }
 }

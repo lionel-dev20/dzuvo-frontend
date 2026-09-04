@@ -35,6 +35,24 @@ const strength = computed(() => {
   return { score, label: labels[score] ?? '' }
 })
 
+const route = useRoute()
+const { user, ensureUser, register } = useAuth()
+
+/** Même règle qu'à la connexion : seuls les chemins internes sont suivis. */
+const destination = computed(() => {
+  const target = route.query.redirect
+  if (typeof target !== 'string' || !target.startsWith('/') || target.startsWith('//')) {
+    return '/compte'
+  }
+  return target
+})
+
+// Page mise en cache (`swr`) : le contrôle de session reste côté navigateur.
+onMounted(async () => {
+  await ensureUser()
+  if (user.value) await navigateTo(destination.value, { replace: true })
+})
+
 async function submit() {
   errors.value = validateRegister(form)
   if (hasErrors(errors.value)) return
@@ -43,8 +61,10 @@ async function submit() {
   feedback.value = ''
 
   try {
-    await $fetch('/api/auth/register', { method: 'POST', body: form })
-    await navigateTo('/compte')
+    // L'API crée le compte WooCommerce **et** ouvre la session : le nouveau
+    // client n'a pas à ressaisir ce qu'il vient de taper.
+    await register(form)
+    await navigateTo(destination.value)
   }
   catch (error: any) {
     status.value = 'error'
@@ -147,7 +167,7 @@ useSeo({
               >
               <button
                 type="button"
-                class="absolute inset-y-0 right-0 grid w-12 cursor-pointer place-items-center text-tertiary-800 hover:text-tertiary-500"
+                class="absolute inset-y-0 right-0 grid w-12 place-items-center text-tertiary-800 hover:text-tertiary-500"
                 :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
                 :aria-pressed="showPassword"
                 @click="showPassword = !showPassword"
@@ -197,7 +217,7 @@ useSeo({
           </div>
 
           <div class="flex flex-col gap-3 pt-2">
-            <label class="flex cursor-pointer items-start gap-2.5 text-xs text-tertiary-800">
+            <label class="flex items-start gap-2.5 text-xs text-tertiary-800">
               <input v-model="form.terms" type="checkbox" class="mt-0.5 size-4 shrink-0 accent-secondary">
               <span>
                 J’accepte les
@@ -208,7 +228,7 @@ useSeo({
             </label>
             <p v-if="errors.terms" :class="errorText" role="alert">{{ errors.terms }}</p>
 
-            <label class="flex cursor-pointer items-start gap-2.5 text-xs text-tertiary-800">
+            <label class="flex items-start gap-2.5 text-xs text-tertiary-800">
               <input v-model="form.newsletter" type="checkbox" class="mt-0.5 size-4 shrink-0 accent-secondary">
               <span>Je souhaite recevoir les nouveautés et offres DZUVO. (facultatif)</span>
             </label>

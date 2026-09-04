@@ -60,7 +60,7 @@ function issueLabel(issue: NonNullable<typeof state.value>['issues'][number]) {
   }
 }
 
-const arrow = 'grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-tertiary-500/10 text-tertiary-500 transition-colors hover:bg-secondary hover:text-tertiary-50 disabled:cursor-default disabled:opacity-30 disabled:hover:bg-tertiary-500/10 disabled:hover:text-tertiary-500'
+const arrow = 'grid size-10 shrink-0 place-items-center rounded-full bg-tertiary-500/10 text-tertiary-500 transition-colors hover:bg-secondary hover:text-on-accent disabled:cursor-default disabled:opacity-30 disabled:hover:bg-tertiary-500/10 disabled:hover:text-tertiary-500'
 
 useSeo({
   title: 'Votre panier',
