@@ -200,13 +200,38 @@ export default defineEventHandler(async (event) => {
         // Carte uniquement : pas de moyen à redirection, donc pas d'aller-retour
         // hors du site au moment de payer.
         payment_method_types: ['card'],
-        receipt_email: shippingAddress.email,
+        /*
+         * Le courriel vient du formulaire, pas de l'adresse de livraison.
+         *
+         * `toWooAddress(address, true)` retire volontairement le courriel :
+         * WooCommerce ne le porte que sur la facturation. Le lire là revenait
+         * donc à passer `undefined` — Stripe n'a jamais envoyé le moindre reçu
+         * depuis l'ouverture de la boutique, sans que rien ne le signale.
+         */
+        receipt_email: address.email.trim().toLowerCase(),
         description: `Commande DZUVO n° ${order.number || order.id}`,
         // Le rapprochement se fait sur ces clés, jamais sur ce que dit le client.
         metadata: { orderId: String(order.id), orderKey: order.order_key },
       },
-      // Un double envoi du formulaire ne crée pas deux paiements.
-      { idempotencyKey: `dzuvo-order-${order.id}` },
+      /*
+       * Un double envoi du formulaire ne crée pas deux paiements.
+       *
+       * La clé porte `order_key` et non le numéro de commande. Le numéro
+       * paraissait naturel, mais il n'est unique qu'à l'intérieur d'une
+       * installation WooCommerce : le site en ligne et le site local ont chacun
+       * leur propre suite de numéros, et tous deux s'adressent au même compte
+       * Stripe. Dès que les deux atteignent le même numéro — ce qui arrive
+       * forcément — la seconde commande réutilise la clé de la première avec
+       * d'autres paramètres, et Stripe la refuse. Le visiteur voit alors « Le
+       * paiement n'a pas pu être initialisé » sans qu'il y ait la moindre
+       * anomalie de son côté.
+       *
+       * `order_key` est tiré au hasard par WooCommerce pour chaque commande :
+       * il ne peut pas entrer en collision entre deux installations, ni après
+       * une réinitialisation de base, ni entre un environnement de test et la
+       * production.
+       */
+      { idempotencyKey: `dzuvo-${order.order_key}` },
     )
 
     return {
