@@ -411,6 +411,26 @@ export interface WooShippingZone {
 const shippingCache = { value: null as WooShippingZone[] | null, expiresAt: 0 }
 const SHIPPING_TTL = 5 * 60 * 1000
 
+interface WooGateway {
+  id: string
+  title: string
+  description: string
+  enabled: boolean
+}
+
+/**
+ * Passerelles de paiement telles que la boutique les a réglées.
+ *
+ * Le tunnel les ignorait : ses deux options étaient écrites en dur dans la
+ * page. Désactiver « Paiement à la livraison » dans WooCommerce ne changeait
+ * donc rien à l'écran — le réglage existait, il n'était simplement lu par
+ * personne.
+ */
+export async function fetchPaymentGateways(): Promise<WooGateway[]> {
+  const { data } = await wooFetch<WooGateway[]>('payment_gateways')
+  return Array.isArray(data) ? data : []
+}
+
 export async function fetchShippingZones(): Promise<WooShippingZone[]> {
   if (shippingCache.value && shippingCache.expiresAt > Date.now()) return shippingCache.value
 

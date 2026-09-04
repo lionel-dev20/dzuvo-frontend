@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type { AuthUser } from '#shared/types/auth'
+import { isTokenRevoked } from './token-denylist'
 import { createCustomer, hasBaseUrl, isConfigured, wooConfig } from './woocommerce'
 
 export const AUTH_COOKIE = 'dzuvo_token'
@@ -228,13 +229,33 @@ export async function authenticate(email: string, password: string, username?: s
   })
 }
 
-export function setAuthCookie(event: H3Event, token: string, remember = true) {
-  const { baseUrl } = wooConfig()
+/**
+ * Le site lui-même est-il servi en HTTPS ?
+ *
+ * Le drapeau `Secure` se décidait sur l'URL de **WordPress**, ce qui est le
+ * mauvais signal : ce cookie porte le jeton de session du visiteur, et c'est le
+ * protocole entre le visiteur et *ce* site qui décide s'il peut voyager en
+ * clair. Un site en HTTPS devant un WordPress interne en HTTP émettait donc un
+ * cookie de session sans `Secure` — bonne réponse par hasard tant que les deux
+ * partagent le même protocole, fausse dès qu'ils divergent.
+ *
+ * `x-forwarded-proto` est renseigné par le répartiteur qui termine le TLS ;
+ * l'accepter ici ne présente pas le risque du `X-Forwarded-For` de la
+ * limitation de débit, puisqu'un client qui mentirait ne ferait que **renforcer**
+ * les restrictions posées sur son propre cookie.
+ */
+function isSecureRequest(event: H3Event) {
+  const forwarded = getRequestHeader(event, 'x-forwarded-proto')?.split(',')[0]?.trim()
+  if (forwarded) return forwarded === 'https'
 
+  return getRequestProtocol(event) === 'https'
+}
+
+export function setAuthCookie(event: H3Event, token: string, remember = true) {
   setCookie(event, AUTH_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: baseUrl.startsWith('https://'),
+    secure: isSecureRequest(event),
     path: '/',
     ...(remember ? { maxAge: REMEMBER_MAX_AGE } : {}),
   })
@@ -306,6 +327,17 @@ function toAuthUser(user: WpUser): AuthUser {
 export async function getSessionUser(event: H3Event): Promise<AuthUser | null> {
   const token = getAuthToken(event)
   if (!token) return null
+
+  /*
+   * Jeton révoqué à la déconnexion. Le contrôle passe **avant** l'appel à
+   * WordPress : lui, il continuerait de l'accepter — sa signature reste valide
+   * jusqu'à l'échéance. C'est donc ici, et nulle part ailleurs, que la
+   * déconnexion prend effet.
+   */
+  if (isTokenRevoked(token)) {
+    clearAuthCookie(event)
+    return null
+  }
 
   const user = await fetchAuthUser(token)
   if (!user) clearAuthCookie(event)
