@@ -69,7 +69,7 @@ const needsChoice = computed(() => props.product.variable || props.product.purch
       <div class="mt-auto pt-4">
         <div v-if="product.regularPrice" class="mb-1 flex items-center gap-2">
           <span class="text-[11px] text-tertiary-800 line-through">{{ money(product.regularPrice) }}</span>
-          <span class="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold text-tertiary-50">
+          <span class="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold text-on-accent">
             -{{ Math.round((1 - product.price / product.regularPrice) * 100) }} %
           </span>
         </div>

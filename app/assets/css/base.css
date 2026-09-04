@@ -45,15 +45,52 @@
 
   p { text-wrap: pretty; }
 
+  /*
+   * Curseur des éléments cliquables.
+   *
+   * Tailwind v4 a retiré le `cursor: pointer` que sa v3 posait sur les boutons :
+   * son preflight suit désormais l'agent utilisateur, qui laisse `default` sur
+   * `<button>`. D'où une main sur les liens et une flèche sur les boutons — la
+   * même action, deux signaux contradictoires — et 38 `cursor-pointer` semés à
+   * la main dans les composants pour rattraper le coup, en oubliant 54 boutons
+   * au passage.
+   *
+   * La règle est posée ici une fois : plus rien à penser à l'écriture d'un
+   * bouton, et plus d'oubli possible.
+   */
+  button,
+  summary,
+  label:has(input[type='checkbox'], input[type='radio']),
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='range'],
+  select,
+  [role='button'],
+  [role='tab'] {
+    cursor: pointer;
+  }
+
+  /* L'indisponibilité prime : une main sur un bouton inerte promet un effet qui
+     ne viendra pas. `aria-disabled` compte autant que `disabled` — c'est ce que
+     porte un lien ou un onglet neutralisé, qui n'a pas d'attribut natif. */
+  button:disabled,
+  select:disabled,
+  input:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-secondary);
     outline-offset: 3px;
     border-radius: var(--radius-btn);
   }
 
+  /* Le fond de sélection est le rouge de marque dans les deux thèmes : son
+     texte suit donc `on-accent`, et non l'échelle qui bascule. */
   ::selection {
     background: var(--color-secondary);
-    color: var(--color-tertiary-50);
+    color: var(--color-on-accent);
   }
 }
 

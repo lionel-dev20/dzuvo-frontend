@@ -40,6 +40,14 @@ export default defineNuxtConfig({
     stripeWebhookSecret: '', // NUXT_STRIPE_WEBHOOK_SECRET — whsec_…
     /** Hôte de l'API Stripe. À ne surcharger que pour tester contre un double. */
     stripeApiHost: '', // NUXT_STRIPE_API_HOST
+
+    /*
+     * Laissez-passer de la purge de cache (/api/revalidate), que WordPress
+     * présente à chaque publication. Vide, la purge est refusée : mieux vaut
+     * un cache qui expire tout seul qu'une adresse publique capable de le
+     * vider en boucle.
+     */
+    revalidateSecret: '', // NUXT_REVALIDATE_SECRET
     public: {
       siteUrl: '', // NUXT_PUBLIC_SITE_URL
       analyticsId: '', // NUXT_PUBLIC_ANALYTICS_ID
@@ -84,33 +92,44 @@ export default defineNuxtConfig({
   },
 
   /*
-   * Aucune page n'est figée au build.
+   * Aucune page n'est mise en cache côté serveur.
    *
-   * Le menu et le contenu de l'accueil se saisissent dans WordPress. Pré-rendre
-   * une page, c'est y graver l'état de WordPress au moment du build : la page
-   * ne se corrigera plus jamais toute seule. Et comme le menu vit dans l'en-tête
-   * de **toutes** les pages, une seule page figée suffit à y montrer un menu
-   * périmé — l'incohérence la plus difficile à diagnostiquer.
+   * C'est un revirement, et il vaut d'être expliqué. Les pages publiques ont
+   * d'abord été servies en `swr` : rendu gardé une minute, régénéré en
+   * arrière-plan. Ce que cette configuration ne disait pas, c'est que Nitro
+   * **hache l'URL entière** pour ranger une entrée. `/contact`,
+   * `/contact?utm_source=infolettre` et `/contact?fbclid=…` deviennent trois
+   * fichiers distincts pour un HTML identique — jamais réutilisés, jamais
+   * expirés du disque. Une seule session de mise au point a suffi à en
+   * accumuler 443, pour 4,8 Mo. En ligne, la moindre campagne marketing ou un
+   * robot fait grossir ce dossier sans limite, sans accélérer une requête.
    *
-   * `swr` garde l'essentiel du pré-rendu : la page est servie depuis le cache,
-   * donc instantanément, et régénérée en arrière-plan passé le délai. Le
-   * visiteur n'attend jamais WordPress.
+   * `cache.getKey` corrigerait la clé, mais Nitro sérialise les `routeRules`
+   * en JSON dans le paquet de production : la fonction y est silencieusement
+   * perdue. Vérifié sur un vrai build — elle n'apparaît nulle part dans
+   * `.output`. Elle aurait donc marché en développement et échoué en ligne,
+   * la pire des deux situations.
    *
-   * Seules les pages publiques et identiques pour tous figurent ici. Ni
-   * `/panier`, ni `/commande`, ni `/compte` : leur contenu dépend du visiteur,
-   * les mettre en cache partagé montrerait à l'un ce qui appartient à l'autre.
+   * Le pré-rendu reste écarté pour sa raison d'origine, inchangée : figer une
+   * page, c'est y graver l'état de WordPress au moment du build, et comme le
+   * menu vit dans l'en-tête de **toutes** les pages, une seule page figée
+   * suffit à y montrer un menu périmé.
    *
-   * Corollaire : le site a besoin d'un serveur Node (`.output/server`).
-   * Un export 100 % statique (`nuxt generate`) figerait de nouveau ces pages.
+   * Le cache n'a pas disparu, il a changé d'étage. Ce que ces pages ont de
+   * coûteux, ce n'est pas leur rendu Vue — c'est l'appel à WordPress. Or
+   * celui-là est déjà mis en cache dans `/api/navigation`, `/api/home` et
+   * `/api/catalog/*`. Rendre la page à chaque requête ne coûte donc pas un
+   * aller-retour de plus vers WordPress.
+   *
+   * Ce que ce déplacement rend possible, et qui manquait le plus à un site
+   * headless : le cache est **purgeable**. WordPress prévient le site à chaque
+   * publication (`/api/revalidate`), le cache de données se vide, et la
+   * modification paraît dans la seconde. Avec `swr`, il aurait fallu purger
+   * autant d'entrées que d'URL vues — donc y renoncer.
+   *
+   * Corollaire inchangé : le site a besoin d'un serveur Node
+   * (`.output/server`). Un export statique (`nuxt generate`) figerait tout.
    */
-  routeRules: {
-    '/': { swr: 60 },
-    // La boutique, le temps du pré-lancement : c'est elle qui lit WordPress.
-    '/home2': { swr: 60 },
-    '/contact': { swr: 60 },
-    '/connexion': { swr: 60 },
-    '/inscription': { swr: 60 },
-  },
 
   nitro: {
     prerender: {

@@ -67,7 +67,7 @@ useSeo({
   description: computed(() => current.value?.description ?? '').value,
 })
 
-const filterChip = 'cursor-pointer rounded-btn border px-4 py-2 text-body transition-colors'
+const filterChip = 'rounded-btn border px-4 py-2 text-body transition-colors'
 </script>
 
 <template>
@@ -158,7 +158,7 @@ const filterChip = 'cursor-pointer rounded-btn border px-4 py-2 text-body transi
           <label class="flex items-center gap-2 text-body text-tertiary-800">
             <span class="sr-only">Trier par</span>
             <select
-              class="cursor-pointer rounded-btn border border-tertiary-500/15 bg-primary px-3 py-2 text-tertiary-500 outline-none focus:border-secondary"
+              class="rounded-btn border border-tertiary-500/15 bg-primary px-3 py-2 text-tertiary-500 outline-none focus:border-secondary"
               :value="sort"
               @change="setQuery({ sort: ($event.target as HTMLSelectElement).value })"
             >
@@ -188,7 +188,7 @@ const filterChip = 'cursor-pointer rounded-btn border px-4 py-2 text-body transi
             :key="p"
             :to="{ query: { ...route.query, page: p === 1 ? undefined : p } }"
             class="grid size-10 place-items-center rounded-btn text-body transition-colors"
-            :class="p === page ? 'bg-secondary font-bold text-tertiary-50' : 'bg-primary text-tertiary-600 hover:text-secondary'"
+            :class="p === page ? 'bg-secondary font-bold text-on-accent' : 'bg-primary text-tertiary-600 hover:text-secondary'"
             :aria-current="p === page ? 'page' : undefined"
           >
             {{ p }}

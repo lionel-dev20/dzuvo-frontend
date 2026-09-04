@@ -32,7 +32,6 @@ export function useCheckout() {
   const address = useState<CheckoutAddress>('checkout:address', emptyAddress)
   const billing = useState<CheckoutAddress>('checkout:billing', emptyAddress)
   const separateBilling = useState('checkout:separate-billing', () => false)
-  const note = useState('checkout:note', () => '')
   const shippingId = useState('checkout:shipping', () => '')
 
   const methods = useState<ShippingMethod[]>('checkout:methods', () => [])
@@ -121,7 +120,6 @@ export function useCheckout() {
         address: address.value,
         billing: separateBilling.value ? billing.value : undefined,
         shipping: shippingId.value,
-        note: note.value,
         honeypot: honeypot.value,
         paymentMethod,
       },
@@ -141,7 +139,6 @@ export function useCheckout() {
     address.value = emptyAddress()
     billing.value = emptyAddress()
     separateBilling.value = false
-    note.value = ''
     shippingId.value = ''
     errors.value = {}
     formError.value = null
@@ -151,7 +148,6 @@ export function useCheckout() {
     address,
     billing,
     separateBilling,
-    note,
     shippingId,
     methods,
     method,

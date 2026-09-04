@@ -105,7 +105,7 @@ useSeo({
           >
           <button
             type="submit"
-            class="btn-primary shrink-0 cursor-pointer justify-center"
+            class="btn-primary shrink-0 justify-center"
             :disabled="status === 'pending' || status === 'success'"
           >
             {{ status === 'pending' ? 'Envoi…' : 'Prévenez-moi' }}
@@ -115,7 +115,7 @@ useSeo({
           </button>
         </div>
 
-        <label v-if="status !== 'success'" class="flex cursor-pointer items-start gap-2.5 text-left text-xs text-tertiary-800">
+        <label v-if="status !== 'success'" class="flex items-start gap-2.5 text-left text-xs text-tertiary-800">
           <input v-model="consent" type="checkbox" class="mt-0.5 size-4 shrink-0 accent-secondary">
           <span>J’accepte de recevoir les communications de DZUVO.</span>
         </label>
@@ -169,7 +169,7 @@ useSeo({
               target="_blank"
               rel="noopener"
               :aria-label="network.label"
-              class="grid size-10 place-items-center rounded-full bg-tertiary-500/8 text-tertiary-500 transition-colors hover:bg-secondary hover:text-tertiary-50"
+              class="grid size-10 place-items-center rounded-full bg-tertiary-500/8 text-tertiary-500 transition-colors hover:bg-secondary hover:text-on-accent"
             >
               <svg v-if="network.id === 'facebook'" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M14 9V7.2c0-.8.2-1.2 1.4-1.2H17V3h-2.6C11.2 3 10 4.5 10 7v2H8v3h2v9h4v-9h2.7l.3-3z" />

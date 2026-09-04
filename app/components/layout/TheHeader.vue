@@ -1,15 +1,64 @@
 <script setup lang="ts">
-import { headerCta } from '~/config/navigation'
+import { HOME_ROUTES, headerCta } from '~/config/navigation'
 
 const { label: cityLabel, detectLabel, city, cities, select, detect } = useCitySelector()
 /** La navigation vient de WordPress ; le méga-menu gère son propre panneau. */
 const { items: navigation } = useNavigation()
 
-/** Sélecteur de ville : le seul panneau que le header pilote encore. */
-const openMenu = ref<'city' | null>(null)
+/*
+ * Session client.
+ *
+ * Elle n'est chargée qu'après l'hydratation, et c'est délibéré : l'état
+ * connecté ne doit jamais partir dans le rendu serveur. Les pages publiques
+ * sont mises en cache et servies telles quelles à tout le monde (`swr` dans
+ * nuxt.config) — le prénom d'un visiteur s'afficherait alors chez les autres.
+ *
+ * Aucun décalage d'hydratation à craindre : la session part de `null` sur le
+ * serveur comme au premier rendu du navigateur, les deux concordent, et le
+ * bandeau ne change qu'ensuite. Même raisonnement que le compteur du panier.
+ */
+const { user, isLoggedIn, loaded, ensureUser, logout } = useAuth()
+onMounted(() => { ensureUser() })
+
+/** Prénom seul : le bandeau est déjà dense, le nom entier le ferait déborder. */
+const firstName = computed(() => user.value?.firstName?.trim() || user.value?.displayName?.trim() || 'Mon compte')
+
+/** Panneaux pilotés par le header : la ville, et désormais le compte. */
+const openMenu = ref<'city' | 'account' | null>(null)
 const searchOpen = ref(false)
 const menuOpen = ref(false)
 const scrolled = ref(false)
+
+/*
+ * Deux allures pour une même barre.
+ *
+ * Sur les pages d'accueil, l'en-tête est posée par-dessus le hero : elle reste
+ * transparente et large, le temps que l'image la porte, puis se compacte au
+ * défilement.
+ *
+ * Ailleurs, il n'y a pas de hero. Une barre transparente n'y révèle que le gris
+ * du fond de page, et sa hauteur d'apparat repousse le contenu sans rien donner
+ * en échange. Ces pages reçoivent donc d'emblée la barre compacte, sur fond
+ * blanc franc — celui du thème clair posé par le gabarit.
+ */
+const route = useRoute()
+const onHome = computed(() => HOME_ROUTES.includes(route.path))
+
+/** Barre resserrée : hors accueil toujours, sur l'accueil une fois le hero passé. */
+const compact = computed(() => !onHome.value || scrolled.value)
+
+/*
+ * Habillage de la barre.
+ *
+ * `bg-primary` vaut #ffffff sous le thème clair : le blanc vient du jeton, il
+ * n'est pas écrit ici. Sur l'accueil, le fond reste translucide et flouté au
+ * défilement — il laisse deviner le hero qui passe dessous, ce qu'un aplat
+ * opaque effacerait.
+ */
+const barSkin = computed(() => {
+  if (!onHome.value) return 'bg-primary shadow-bar'
+  return scrolled.value ? 'bg-primary/85 shadow-bar backdrop-blur-md' : 'bg-transparent'
+})
 
 /** Compteur du panier ; le badge se masque à zéro. */
 const { count: cartCount } = useCart()
@@ -23,7 +72,8 @@ const iconButton = 'flex min-w-[54px] flex-col items-center gap-1 rounded-btn px
 const iconLabel = 'text-[11px] leading-none font-medium'
 const panel = 'absolute top-[calc(100%+10px)] z-70 rounded-xl border border-tertiary-500/12 bg-primary shadow-panel'
 const searchBox = 'flex items-center gap-2 rounded-btn border border-tertiary-500/18 bg-tertiary-500/6 px-3.5 py-2'
-const badge = 'absolute -top-1.5 -right-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-secondary px-1 text-[11px] leading-none font-bold text-tertiary-50'
+const accountLink = 'rounded-lg px-3 py-[11px] text-left text-sm font-medium text-tertiary-500 transition-colors hover:bg-tertiary-500/6 hover:text-secondary'
+const badge = 'absolute -top-1.5 -right-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-secondary px-1 text-[11px] leading-none font-bold text-on-accent'
 
 function toggleMenu(menu: 'city') {
   openMenu.value = openMenu.value === menu ? null : menu
@@ -72,14 +122,12 @@ onMounted(() => {
 <template>
   <header
     class="sticky top-0 z-50 text-tertiary-500 transition-[background-color,box-shadow] duration-300"
-    :class="scrolled
-      ? 'bg-primary/85 shadow-bar backdrop-blur-md'
-      : 'bg-transparent'"
+    :class="barSkin"
   >
-    <!-- Passé le hero, la barre se compacte : marge annulée, logo réduit. -->
+    <!-- Barre compacte : marge annulée, logo réduit. -->
     <div
       class="flex items-center gap-2.5 px-2.5 transition-[padding,margin] duration-300 md:gap-5 md:px-5 lg:px-24"
-      :class="scrolled ? 'mt-0 py-3' : 'mt-2.5 py-3 md:mt-4 lg:mt-6'"
+      :class="compact ? 'mt-0 py-3' : 'mt-2.5 py-3 md:mt-4 lg:mt-6'"
     >
       <!-- Pendant le pré-lancement, le logo ramène à la boutique et non à `/`,
            qui affiche la page d'annonce : depuis un rayon, ce serait une sortie
@@ -92,7 +140,7 @@ onMounted(() => {
           width="72"
           height="72"
           class="w-auto transition-[height] duration-300"
-          :class="scrolled ? 'h-11 md:h-12' : 'h-14 md:h-24 lg:h-28'"
+          :class="compact ? 'h-11 md:h-12' : 'h-14 md:h-24 lg:h-28'"
         >
       </NuxtLink>
 
@@ -185,7 +233,36 @@ onMounted(() => {
           <span :class="iconLabel">Rechercher</span>
         </button>
 
-        <NuxtLink to="/connexion" :class="iconButton">
+        <!-- Compte. Visiteur : un lien vers la connexion. Client identifié :
+             son prénom, et un panneau qui mène à son espace ou l'en fait sortir. -->
+        <div v-if="isLoggedIn" class="relative" data-dropdown>
+          <button
+            :class="iconButton"
+            type="button"
+            aria-haspopup="true"
+            :aria-expanded="openMenu === 'account'"
+            aria-controls="account-panel"
+            @click="toggleMenu('account')"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="10" cy="6.5" r="3.2" stroke="currentColor" stroke-width="1.6" />
+              <path d="M3.5 17c.9-3 3.4-4.5 6.5-4.5s5.6 1.5 6.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            <span :class="[iconLabel, 'max-w-[70px] truncate']">{{ firstName }}</span>
+          </button>
+
+          <div v-if="openMenu === 'account'" id="account-panel" class="right-0 flex min-w-[200px] flex-col p-2" :class="panel">
+            <NuxtLink :class="accountLink" to="/compte" @click="openMenu = null">Mon compte</NuxtLink>
+            <NuxtLink :class="accountLink" to="/panier" @click="openMenu = null">Mon panier</NuxtLink>
+            <!-- `logout()` et non `logout` : la forme sans parenthèses passerait
+                 l'événement souris en guise de destination de redirection. -->
+            <button :class="[accountLink, 'w-full text-left text-secondary']" type="button" @click="openMenu = null; logout()">
+              Se déconnecter
+            </button>
+          </div>
+        </div>
+
+        <NuxtLink v-else to="/connexion" :class="iconButton">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <circle cx="10" cy="6.5" r="3.2" stroke="currentColor" stroke-width="1.6" />
             <path d="M3.5 17c.9-3 3.4-4.5 6.5-4.5s5.6 1.5 6.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -210,8 +287,9 @@ onMounted(() => {
         </NuxtLink>
 
         <!-- CTA primaire : états définis par le guide de style. -->
+        <!-- « Créer un compte » disparaît pour qui en a déjà un. -->
         <NuxtLink
-          v-if="headerCta"
+          v-if="headerCta && !isLoggedIn"
           :to="headerCta.to"
           class="btn-primary ml-1"
         >

@@ -124,7 +124,7 @@ onBeforeUnmount(() => {
               <p class="flex-1 pt-1 text-h4 font-bold text-tertiary-50">{{ heading }}</p>
               <button
                 type="button"
-                class="grid size-9 shrink-0 cursor-pointer place-items-center rounded-btn text-tertiary-800 transition-colors hover:bg-tertiary-500/8 hover:text-tertiary-50"
+                class="grid size-9 shrink-0 place-items-center rounded-btn text-tertiary-800 transition-colors hover:bg-tertiary-500/8 hover:text-tertiary-50"
                 aria-label="Fermer"
                 @click="closeDrawer"
               >
@@ -148,7 +148,7 @@ onBeforeUnmount(() => {
                     >
                   </span>
                   <span
-                    class="absolute -top-2 -left-2 grid size-6 place-items-center rounded-full bg-secondary text-[11px] font-bold text-tertiary-50"
+                    class="absolute -top-2 -left-2 grid size-6 place-items-center rounded-full bg-secondary text-[11px] font-bold text-on-accent"
                     aria-hidden="true"
                   >
                     {{ line?.quantity ?? lastAddedQuantity }}

@@ -16,12 +16,17 @@
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   background-color: var(--color-secondary);
-  color: var(--color-tertiary-50);
+  /* `on-accent` et non `tertiary-50` : le fond reste rouge dans les deux
+     thèmes, le texte doit donc rester blanc. Avec `tertiary-50`, le libellé
+     virait au noir dès le passage en thème clair. */
+  color: var(--color-on-accent);
   font-size: var(--text-sm);
   font-weight: 700;
   white-space: nowrap;
   transition: background-color 180ms, color 180ms;
 
+  /* Le survol inverse le rapport : fond rose pâle, texte rouge. Ces deux
+     nuances ne basculent pas non plus — le couple tient dans les deux thèmes. */
   &:hover {
     background-color: var(--color-secondary-light);
     color: var(--color-secondary);
@@ -29,18 +34,17 @@
 
   &:active {
     background-color: var(--color-secondary-active);
-    color: var(--color-tertiary-50);
+    color: var(--color-on-accent);
   }
 
   /* Un bouton indisponible doit se voir : sans cela, le clic sans effet passe
      pour une panne. Le survol est neutralisé, sinon il promettrait l'inverse. */
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
 
     &:hover {
       background-color: var(--color-secondary);
-      color: var(--color-tertiary-50);
+      color: var(--color-on-accent);
     }
   }
 }
@@ -69,15 +73,23 @@
     color: var(--color-primary);
   }
 
+  /*
+   * Pressé : même inversion que le survol, en un ton plus sourd.
+   *
+   * Le fond était figé sur `primary-light-active`, un gris moyen que le thème
+   * clair ne redéfinit pas, tandis que le texte suivait `primary` et passait au
+   * blanc. Blanc sur gris moyen : le libellé disparaissait au clic sur toutes
+   * les pages du site sauf l'accueil. `tertiary-600` bascule avec le thème,
+   * comme le texte — le contraste est donc tenu des deux côtés.
+   */
   &:active {
-    background-color: var(--color-primary-light-active);
-    border-color: var(--color-primary-light-active);
+    background-color: var(--color-tertiary-600);
+    border-color: var(--color-tertiary-600);
     color: var(--color-primary);
   }
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
 
     &:hover {
       background-color: transparent;
@@ -123,5 +135,39 @@
 
 /* Champ en erreur : la bordure double le message, jamais seule. */
 @utility field-invalid {
+  border-color: var(--color-secondary);
+}
+
+/*
+ * Ombres du site.
+ *
+ * Reprises à la main parce que Tailwind fige les valeurs du préfixe
+ * `--shadow-*` dans la classe au lieu de lire la variable — voir le bloc
+ * `:root` de tokens.css. Passer par `var()` ici est ce qui permet au thème
+ * clair d'imposer ses propres ombres.
+ */
+@utility shadow-panel { box-shadow: var(--shadow-panel); }
+@utility shadow-menu { box-shadow: var(--shadow-menu); }
+@utility shadow-bar { box-shadow: var(--shadow-bar); }
+@utility shadow-drawer { box-shadow: var(--shadow-drawer); }
+@utility shadow-drawer-left { box-shadow: var(--shadow-drawer-left); }
+
+/*
+ * Champs de carte bancaire.
+ *
+ * Ils portent l'utilitaire `field` comme les autres champs du tunnel, mais ce
+ * sont des `<div>` contenant une iframe de Stripe : ils ne reçoivent jamais
+ * `:focus`, et l'état actif de `field` resterait donc invisible. Stripe pose
+ * ses propres classes sur le conteneur — on les rebranche sur les mêmes
+ * jetons, pour que la carte réagisse exactement comme le reste du formulaire.
+ *
+ * Hors `@layer` à dessein : ces règles doivent l'emporter sur l'utilitaire
+ * `field` qu'elles complètent.
+ */
+.field.StripeElement--focus {
+  border-color: var(--color-secondary);
+}
+
+.field.StripeElement--invalid {
   border-color: var(--color-secondary);
 }

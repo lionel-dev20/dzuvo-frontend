@@ -108,7 +108,7 @@ onMounted(() => {
   })
 })
 
-const arrow = 'grid size-11 shrink-0 cursor-pointer place-items-center rounded-full bg-tertiary-500/10 text-tertiary-500 transition-colors hover:bg-secondary hover:text-tertiary-50 disabled:cursor-default disabled:opacity-30 disabled:hover:bg-tertiary-500/10 disabled:hover:text-tertiary-500'
+const arrow = 'grid size-11 shrink-0 place-items-center rounded-full bg-tertiary-500/10 text-tertiary-500 transition-colors hover:bg-secondary hover:text-on-accent disabled:cursor-default disabled:opacity-30 disabled:hover:bg-tertiary-500/10 disabled:hover:text-tertiary-500'
 </script>
 
 <template>
@@ -206,7 +206,7 @@ const arrow = 'grid size-11 shrink-0 cursor-pointer place-items-center rounded-f
               <div class="mt-auto pt-4">
                 <div v-if="product.oldPrice" class="mb-1 flex items-center gap-2">
                   <span class="text-[11px] text-tertiary-800 line-through">{{ product.oldPrice }}</span>
-                  <span v-if="product.discount" class="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold text-tertiary-50">
+                  <span v-if="product.discount" class="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold text-on-accent">
                     {{ product.discount }}
                   </span>
                 </div>
@@ -218,7 +218,7 @@ const arrow = 'grid size-11 shrink-0 cursor-pointer place-items-center rounded-f
 
                 <button
                   type="button"
-                  class="mt-4 w-full cursor-pointer justify-center"
+                  class="mt-4 w-full justify-center"
                   :class="product.inStock ? 'btn-primary' : 'btn-secondary'"
                   :disabled="!product.inStock"
                   @click="addToCart(product)"

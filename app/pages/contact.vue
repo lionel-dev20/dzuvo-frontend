@@ -125,7 +125,7 @@ useFaqSchema(faq.map(({ question, answer }) => ({ question, answer })))
             </svg>
           </span>
           <p class="text-h4 font-medium text-tertiary-50">{{ feedback }}</p>
-          <button type="button" class="btn-secondary cursor-pointer" @click="reset()">
+          <button type="button" class="btn-secondary" @click="reset()">
             Envoyer un autre message
           </button>
         </div>
@@ -254,7 +254,7 @@ useFaqSchema(faq.map(({ question, answer }) => ({ question, answer })))
           </div>
 
           <div class="md:col-span-2">
-            <label class="flex cursor-pointer items-start gap-2.5 text-xs text-tertiary-800">
+            <label class="flex items-start gap-2.5 text-xs text-tertiary-800">
               <input v-model="form.consent" type="checkbox" class="mt-0.5 size-4 shrink-0 accent-secondary">
               <span>J’accepte que DZUVO utilise ces informations pour répondre à ma demande.</span>
             </label>
@@ -262,7 +262,7 @@ useFaqSchema(faq.map(({ question, answer }) => ({ question, answer })))
           </div>
 
           <div class="flex flex-col gap-4 md:col-span-2 md:flex-row md:items-center md:justify-between">
-            <button type="submit" class="btn-primary cursor-pointer justify-center" :disabled="status === 'pending'">
+            <button type="submit" class="btn-primary justify-center" :disabled="status === 'pending'">
               {{ status === 'pending' ? 'Envoi en cours…' : 'Envoyer mon message' }}
               <svg v-if="status !== 'pending'" width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
                 <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -362,7 +362,7 @@ useFaqSchema(faq.map(({ question, answer }) => ({ question, answer })))
                 target="_blank"
                 rel="noopener"
                 :aria-label="network.label"
-                class="grid size-10 place-items-center rounded-full bg-tertiary-500/8 text-tertiary-500 transition-colors hover:bg-secondary hover:text-tertiary-50"
+                class="grid size-10 place-items-center rounded-full bg-tertiary-500/8 text-tertiary-500 transition-colors hover:bg-secondary hover:text-on-accent"
               >
                 <svg v-if="network.id === 'facebook'" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M14 9V7.2c0-.8.2-1.2 1.4-1.2H17V3h-2.6C11.2 3 10 4.5 10 7v2H8v3h2v9h4v-9h2.7l.3-3z" />
@@ -422,7 +422,7 @@ useFaqSchema(faq.map(({ question, answer }) => ({ question, answer })))
           <h3>
             <button
               type="button"
-              class="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left text-h4 font-medium text-tertiary-50"
+              class="flex w-full items-center justify-between gap-4 py-5 text-left text-h4 font-medium text-tertiary-50"
               :aria-expanded="openQuestion === item.id"
               :aria-controls="`faq-${item.id}`"
               @click="toggleQuestion(item.id)"

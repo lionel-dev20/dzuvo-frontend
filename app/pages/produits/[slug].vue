@@ -107,7 +107,7 @@ useSeo({
           <li v-for="(image, index) in product.images" :key="image.src">
             <button
               type="button"
-              class="aspect-square w-full cursor-pointer overflow-hidden rounded-xl bg-primary p-2 transition-colors"
+              class="aspect-square w-full overflow-hidden rounded-xl bg-primary p-2 transition-colors"
               :class="index === activeImage ? 'ring-2 ring-secondary' : 'hover:ring-1 hover:ring-tertiary-500/30'"
               :aria-label="`Visuel ${index + 1}`"
               :aria-current="index === activeImage"
@@ -148,7 +148,7 @@ useSeo({
         <div class="mt-8 rounded-2xl bg-primary p-6">
           <div v-if="product.regularPrice" class="mb-2 flex items-center gap-3">
             <span class="text-body text-tertiary-800 line-through">{{ money(product.regularPrice) }}</span>
-            <span class="rounded bg-secondary px-2 py-0.5 text-xs font-bold text-tertiary-50">-{{ discount }} %</span>
+            <span class="rounded bg-secondary px-2 py-0.5 text-xs font-bold text-on-accent">-{{ discount }} %</span>
           </div>
 
           <p class="text-h1 leading-none font-bold" :class="product.regularPrice ? 'text-secondary' : 'text-tertiary-50'">
@@ -164,7 +164,7 @@ useSeo({
             <div v-if="product.inStock" class="flex items-center rounded-btn border border-tertiary-500/15">
               <button
                 type="button"
-                class="grid size-11 cursor-pointer place-items-center text-tertiary-500 hover:text-secondary"
+                class="grid size-11 place-items-center text-tertiary-500 hover:text-secondary"
                 aria-label="Retirer une unité"
                 @click="quantity = Math.max(1, quantity - 1)"
               >
@@ -173,7 +173,7 @@ useSeo({
               <span class="w-10 text-center text-tertiary-50 tabular-nums" aria-live="polite">{{ quantity }}</span>
               <button
                 type="button"
-                class="grid size-11 cursor-pointer place-items-center text-tertiary-500 hover:text-secondary disabled:cursor-default disabled:opacity-30"
+                class="grid size-11 place-items-center text-tertiary-500 hover:text-secondary disabled:cursor-default disabled:opacity-30"
                 aria-label="Ajouter une unité"
                 :disabled="quantity >= ceiling"
                 @click="quantity = Math.min(ceiling, quantity + 1)"

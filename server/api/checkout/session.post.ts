@@ -121,6 +121,10 @@ export default defineEventHandler(async (event) => {
       method_title: method.label,
       total: method.cost.toFixed(2),
     },
+    /* Le tunnel ne propose plus de consigne de livraison : le champ a été
+       retiré pour concentrer l'écran sur l'indispensable. La clé reste lue —
+       elle ne coûte rien et évite d'avoir à retoucher ici le jour où une note
+       revient, par exemple depuis l'espace client. */
     customerNote: body?.note?.trim() || undefined,
     payment: paymentMethod === 'cod'
       ? { method: 'cod', title: 'Paiement à la livraison', status: 'processing' }

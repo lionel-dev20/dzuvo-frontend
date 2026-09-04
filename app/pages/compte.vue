@@ -1,19 +1,22 @@
 <script setup lang="ts">
-/** Espace client : profil et déconnexion. Redirige vers la connexion si non authentifié. */
-const { user, loaded, fetchUser, logout } = useAuth()
-const loggingOut = ref(false)
+/**
+ * Espace client : profil et déconnexion.
+ *
+ * L'accès est filtré par le middleware `auth`, avant tout affichage. La page
+ * peut donc considérer `user` comme présent — le `v-if` du gabarit ne couvre
+ * que l'instant du rendu serveur.
+ */
+definePageMeta({ middleware: 'auth' })
 
-onMounted(async () => {
-  await fetchUser()
-  if (!user.value) {
-    await navigateTo('/connexion')
-  }
-})
+const { user, loaded, logout } = useAuth()
+const loggingOut = ref(false)
 
 async function handleLogout() {
   loggingOut.value = true
   try {
-    await logout()
+    // Retour à l'accueil : rester sur l'espace client renverrait aussitôt le
+    // middleware vers la page de connexion, ce qui ressemble à une erreur.
+    await logout('/')
   }
   finally {
     loggingOut.value = false

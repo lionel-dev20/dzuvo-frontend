@@ -117,7 +117,7 @@ const shortcuts = computed(() => [
             </div>
 
             <div>
-              <label class="flex cursor-pointer items-start gap-2.5 text-xs text-tertiary-800">
+              <label class="flex items-start gap-2.5 text-xs text-tertiary-800">
                 <input
                   v-model="form.consent"
                   type="checkbox"
@@ -131,7 +131,7 @@ const shortcuts = computed(() => [
             <!-- Piège à robots : invisible et retiré du parcours clavier. -->
             <input v-model="form.honeypot" type="text" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
 
-            <button type="submit" class="btn-primary cursor-pointer mt-auto justify-center" :disabled="status === 'pending'">
+            <button type="submit" class="btn-primary mt-auto justify-center" :disabled="status === 'pending'">
               {{ status === 'pending' ? 'Envoi en cours…' : 'Envoyer ma demande' }}
               <svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
                 <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
