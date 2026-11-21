@@ -91,9 +91,14 @@ le mu-plugin, régénérer ce fichier.
 
 ## mu-plugins/dzuvo-product-offers.php
 
-Ajoute à chaque produit WooCommerce des **offres de quantité** (« 2 articles :
--10 % »), affichées sur la fiche sous forme de lots et appliquées au panier et à
-la commande par le site Nuxt.
+Ajoute à chaque produit WooCommerce des **offres de quantité**. Sur la fiche, le
+client choisit entre trois options radio illustrées de l'image du produit :
+
+- **Acheter 1** : le prix actuel du produit ;
+- **Acheter 2** : remise en % que vous réglez ;
+- **Acheter 3** : remise en % que vous réglez.
+
+Le site Nuxt applique la remise au panier et à la commande.
 
 **Installation :** déposer le fichier dans `wp-content/mu-plugins/`. Rien à
 activer.
@@ -103,17 +108,16 @@ activer.
 
 | Champ | Exemple |
 | --- | --- |
-| Offre 1 — à partir de (articles) | 2 |
-| Offre 1 — remise (%) | 10 |
-| Offre 2 — à partir de (articles) | 3 |
-| Offre 2 — remise (%) | 15 |
+| Acheter 2 — remise (%) | 10 |
+| Acheter 3 — remise (%) | 15 |
 
-- La remise s'applique à **toutes** les unités dès que le seuil est atteint, sur
-  le prix du moment (promotion comprise). Les offres ne se cumulent pas.
-- Une offre incomplète (seuil < 2, remise vide ou > 90 %) est ignorée : mieux
-  vaut aucune offre qu'une remise à moitié saisie.
-- Laisser les champs vides : le produit n'a pas d'offre, la fiche garde le
-  simple sélecteur de quantité.
+- Les quantités (2 et 3) sont fixes : seules les remises se saisissent.
+- La remise s'applique à **toutes** les unités du lot, sur le prix du moment
+  (promotion comprise). Les offres ne se cumulent pas.
+- La remise de « Acheter 3 » doit dépasser celle de « Acheter 2 », sinon le lot
+  de 3 n'est pas proposé : acheter plus ne doit jamais coûter plus cher à l'unité.
+- Un champ vide ou hors bornes (1 à 90) retire le lot. Les deux vides : le
+  produit n'a pas d'offre, la fiche garde le simple sélecteur de quantité.
 - Un code avantage s'applique **après** l'offre, sur le prix déjà remisé.
 
 ## Avis clients

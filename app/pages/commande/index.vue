@@ -446,7 +446,7 @@ useSeo({
 </script>
 
 <template>
-  <div class="px-page pt-10 pb-20">
+  <div class="px-2.5 md:px-5 lg:px-24 pt-10 pb-20">
     <nav aria-label="Étapes" class="mb-8 text-[13px] text-tertiary-800">
       <ol class="flex flex-wrap items-center gap-2">
         <li><NuxtLink to="/panier" class="hover:text-secondary">Panier</NuxtLink></li>

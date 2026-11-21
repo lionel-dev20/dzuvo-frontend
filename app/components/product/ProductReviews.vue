@@ -48,7 +48,7 @@ function openForm() {
   <section id="avis" class="scroll-mt-header" aria-labelledby="avis-titre">
     <h2 id="avis-titre" class="text-h3 font-bold text-tertiary-50">Avis clients</h2>
 
-    <div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:gap-12">
+    <div class="mt-6 grid gap-3 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
       <!-- Note d'ensemble -->
       <div>
         <div v-if="total" class="flex items-center gap-4">
@@ -107,7 +107,7 @@ function openForm() {
             <p v-if="errors.rating" class="mt-1 text-[13px] text-secondary" role="alert">{{ errors.rating }}</p>
           </fieldset>
 
-          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
             <div>
               <label :for="`${uid}-name`" class="mb-1.5 block text-body font-medium text-tertiary-500">Prénom</label>
               <input :id="`${uid}-name`" v-model="form.name" type="text" autocomplete="given-name" maxlength="60" class="field" :class="errors.name && 'field-invalid'">

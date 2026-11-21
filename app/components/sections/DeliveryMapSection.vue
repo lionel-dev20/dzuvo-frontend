@@ -68,7 +68,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section ref="root" class="px-page" aria-label="Zones de livraison">
+  <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="Zones de livraison">
     <div data-reveal-group class="p-4 md:p-8">
       <div data-reveal class="mx-auto mb-10 max-w-2xl text-center">
         <h2 class="text-h2 leading-tight font-bold text-balance lg:text-h2-lg">

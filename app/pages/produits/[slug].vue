@@ -90,7 +90,7 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
 </script>
 
 <template>
-  <div v-if="product" ref="root" class="px-page pt-10 pb-28 lg:pb-20">
+  <div v-if="product" ref="root" class="px-2.5 md:px-5 lg:px-24 pt-10 pb-28 lg:pb-20">
     <nav aria-label="Fil d’Ariane" class="mb-8 text-[13px] text-tertiary-800">
       <ol class="flex flex-wrap items-center gap-2">
         <li><NuxtLink to="/" class="hover:text-secondary">Accueil</NuxtLink></li>
@@ -109,7 +109,7 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
       </ol>
     </nav>
 
-    <div class="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
+    <div class="grid items-start gap-3 lg:grid-cols-2">
       <!-- Visuels : collés pendant la lecture de la colonne d'achat. -->
       <div class="lg:sticky lg:top-[calc(var(--spacing-header)+1.5rem)]">
         <ProductGallery :images="product.images" :badge="product.badge" />
@@ -158,6 +158,8 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
             v-model="quantity"
             :unit-price="product.price"
             :offers="product.quantityOffers"
+            :image="product.images[0]?.src"
+            :name="product.name"
           />
 
           <div class="mt-6 flex flex-wrap items-stretch gap-3">
@@ -266,7 +268,7 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
 
     <section v-if="suggestions.length" class="mt-16" aria-label="Produits similaires">
       <h2 class="mb-6 text-h3 font-bold text-tertiary-50">Dans la même rubrique</h2>
-      <ul data-reveal-group class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <ul data-reveal-group class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <li v-for="item in suggestions" :key="item.id" data-reveal>
           <ProductCard :product="item" />
         </li>

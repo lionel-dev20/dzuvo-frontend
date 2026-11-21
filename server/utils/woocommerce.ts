@@ -223,11 +223,14 @@ function toProduct(raw: WooProduct): CatalogProduct {
 }
 
 /**
- * Offres de quantité saisies sur la fiche WooCommerce.
+ * Offres de quantité saisies sur la fiche WooCommerce : « Acheter 2 » et
+ * « Acheter 3 ».
  *
- * Elles vivent dans quatre champs personnalisés (`dzuvo_offer1_qty`,
- * `dzuvo_offer1_percent`, puis les mêmes pour l'offre 2), posés par l'extension
- * « DZUVO — offres de quantité » dans l'onglet Général du produit. Les clés
+ * Seule la remise se règle, dans deux champs personnalisés
+ * (`dzuvo_offer1_percent` pour 2 articles, `dzuvo_offer2_percent` pour 3), posés
+ * par l'extension « DZUVO — offres de quantité » dans l'onglet Général du
+ * produit. Les quantités sont fixes. Un champ `dzuvo_offerN_qty` existe encore
+ * pour une éventuelle surcharge, mais n'est plus proposé à la saisie. Les clés
  * n'ont volontairement pas de tiret bas initial : WooCommerce ne publie pas les
  * métadonnées « privées » dans son API.
  *
@@ -238,7 +241,8 @@ function offersOf(raw: WooProduct): { quantityOffers?: CatalogProduct['quantityO
   const meta = new Map((raw.meta_data ?? []).map(entry => [entry.key, entry.value]))
 
   const offers = normalizeOffers([1, 2].map(rank => ({
-    quantity: meta.get(`dzuvo_offer${rank}_qty`),
+    // Rang 1 → 2 articles, rang 2 → 3 articles.
+    quantity: meta.get(`dzuvo_offer${rank}_qty`) || rank + 1,
     percent: meta.get(`dzuvo_offer${rank}_percent`),
   })))
 

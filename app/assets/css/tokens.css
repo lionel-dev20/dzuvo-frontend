@@ -146,11 +146,6 @@
  * l'élément, seul le resserrement la fait lire comme un relief.
  */
 :root {
-  /* Largeur maximale du contenu : 1280px, la mesure courante des grands sites
-     marchands au Canada (Walmart, Canadian Tire, Best Buy). Au-delà, le contenu
-     se centre au lieu de s'étirer ; les fonds, eux, restent pleine largeur. */
-  --page-max: 80rem;
-
   --shadow-panel: 0 10px 24px rgb(0 0 0 / 0.28);
   --shadow-menu: 0 14px 34px rgb(0 0 0 / 0.3);
   --shadow-bar: 0 3px 12px rgb(0 0 0 / 0.22);
@@ -187,8 +182,15 @@
   --color-tertiary-900: #85858f;
 
   /* Surfaces. `primary-darker` porte le fond de page, `primary` les cartes :
-     leurs rôles ne changent pas, seules leurs valeurs s'éclaircissent. */
-  --color-primary-darker: #f5f5f5;
+     leurs rôles ne changent pas, seules leurs valeurs s'éclaircissent.
+
+     Le fond de page est #EAF0FA à 60 % d'opacité, posé sur le blanc de la
+     page : (234, 240, 250) × 0,6 + (255, 255, 255) × 0,4 = (242, 246, 252),
+     soit #F2F6FC. On écrit la couleur composée plutôt qu'une transparence :
+     `primary-darker` sert aussi de fond à des éléments qui doivent rester
+     opaques (barre d'achat, vignettes du panier). Un fond translucide y
+     laisserait transparaître le contenu qui défile derrière. */
+  --color-primary-darker: #f2f6fc;
   --color-primary-dark: #f0f0f0;
   --color-primary: #ffffff;
   --color-primary-hover: #fafafa;

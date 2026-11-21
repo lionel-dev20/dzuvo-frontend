@@ -31,7 +31,7 @@ const banners = list(content => content.banners, fallbackBanners)
 </script>
 
 <template>
-  <section ref="root" class="px-page" aria-label="Accès rapides">
+  <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="Accès rapides">
     <ul data-reveal-group class="grid gap-4 lg:grid-cols-2">
       <li v-for="banner in banners" :key="banner.id" data-reveal>
         <NuxtLink
