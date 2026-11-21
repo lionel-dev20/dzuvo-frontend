@@ -1,37 +1,34 @@
 <script setup lang="ts">
 /**
- * La boutique, en attendant l'ouverture.
+ * Accueil de la boutique, en thème clair comme le reste du site.
  *
- * C'est l'ancienne page d'accueil, déplacée telle quelle : `/` accueille
- * désormais la page d'annonce. Rien n'a changé dans les sections — elles
- * lisent toujours WordPress par `useHomeContent`.
- *
- * `noindex` le temps du pré-lancement : deux pages d'accueil indexées se
- * feraient concurrence dans les résultats de recherche, et c'est l'annonce
- * qui doit ressortir. À retirer le jour de l'ouverture, quand cette page
- * reprendra sa place à la racine.
+ * Les anciennes sections (`components/sections/`) ne sont plus utilisées ici ;
+ * elles restent en place le temps de valider cette version. `noindex` est
+ * conservé jusqu'à l'ouverture : voir l'annonce sur `/home2`.
  */
 useSeo({
   title: 'Accueil',
-  description: 'Pièces auto et accessoires DZUVO, compatibles toutes marques, livrés partout au Canada.',
+  description: 'Accessoires utiles à petit prix, livrés partout au Canada. DZUVO.',
   noindex: true,
 })
 </script>
 
 <template>
   <!--
-    Rythme vertical du site : 64px entre deux sections sur mobile, 80px dès la
-    tablette, 96px sur desktop. Centraliser l'espacement ici évite que chaque
-    section porte ses propres marges.
+    Rythme vertical : 64px entre deux sections sur mobile, 80px dès la tablette,
+    96px sur desktop. L'espacement vit ici, pas dans chaque section.
+
+    L'ordre est celui d'une conversation : on accroche (vidéo), on présente
+    quatre produits qui vont ensemble, on
+    rassure sur la livraison, on ouvre deux portes, on prend des engagements.
   -->
-  <div class="space-y-16 md:space-y-20 lg:space-y-24">
-    <HeroSection />
-    <PartRequestSection class="lg:space-y-6" />
-    <VideoSection />
-    <KeyPointsSection />
-    <FeaturedCategoriesSection />
-    <ProductCarouselSection />
-    <!-- <PromoBannersSection /> -->
-    <!-- <TestimonialsSection /> -->
+  <div class="space-y-16 pb-4 md:space-y-20 lg:space-y-24">
+    <HomeHero />
+    <HomeFeatured />
+    <HomeBundle />
+    <HomeDelivery />
+    <HomeBanners />
+    <HomeCommitments />
+    <HomeCta />
   </div>
 </template>

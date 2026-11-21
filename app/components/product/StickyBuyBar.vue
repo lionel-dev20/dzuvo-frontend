@@ -55,7 +55,7 @@ onMounted(() => {
           <p class="truncate text-[13px] text-tertiary-600">{{ name }}</p>
           <p class="font-bold text-tertiary-50 tabular-nums">{{ formatPrice(total) }}</p>
         </div>
-        <button type="button" class="btn-primary shrink-0 justify-center" @click="emit('buy')">{{ label }}</button>
+        <button type="button" class="btn-primary shrink-0 justify-center !bg-secondary-hover hover:!bg-secondary-light active:!bg-secondary-active" @click="emit('buy')">{{ label }}</button>
       </div>
     </div>
   </Transition>

@@ -106,7 +106,9 @@ const filterChip = 'rounded-btn border px-4 py-2 text-body transition-colors'
 
     <div class="flex flex-col gap-8 lg:flex-row lg:gap-10">
       <!-- Colonne de filtres -->
-      <aside class="lg:w-64 lg:shrink-0" aria-label="Filtres">
+      <!-- Collée sous l'en-tête pendant le défilement, jusqu'à la fin de la
+           grille. Si elle dépasse l'écran, elle défile sur elle-même. -->
+      <aside class="lg:sticky lg:top-[calc(var(--spacing-header)+1rem)] lg:max-h-[calc(100dvh-var(--spacing-header)-2rem)] lg:w-64 lg:shrink-0 lg:self-start lg:overflow-y-auto" aria-label="Filtres">
         <div class="rounded-2xl bg-primary p-5">
           <h2 class="mb-4 text-h4 font-bold text-tertiary-50 uppercase">Filtrer</h2>
 
@@ -150,7 +152,7 @@ const filterChip = 'rounded-btn border px-4 py-2 text-body transition-colors'
 
       <!-- Grille de produits -->
       <div class="min-w-0 flex-1">
-        <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="sticky top-[var(--spacing-header)] z-10 -mx-1 mb-5 flex flex-wrap items-center justify-between gap-4 bg-primary-darker px-1 py-3">
           <p class="text-body text-tertiary-800">
             {{ result?.total ?? 0 }} produit{{ (result?.total ?? 0) > 1 ? 's' : '' }}
           </p>
@@ -158,7 +160,7 @@ const filterChip = 'rounded-btn border px-4 py-2 text-body transition-colors'
           <label class="flex items-center gap-2 text-body text-tertiary-800">
             <span class="sr-only">Trier par</span>
             <select
-              class="rounded-btn border border-tertiary-500/15 bg-primary px-3 py-2 text-tertiary-500 outline-none focus:border-secondary"
+              class="rounded-btn border border-tertiary-500/15 bg-primary py-2 pr-11 pl-4 text-tertiary-500 outline-none focus:border-secondary"
               :value="sort"
               @change="setQuery({ sort: ($event.target as HTMLSelectElement).value })"
             >

@@ -80,6 +80,18 @@
     cursor: not-allowed;
   }
 
+  /* Liste déroulante : la flèche native colle à la bordure, sans marge. On
+     la remplace par un chevron posé à 14 px du bord ; la place qu'il occupe est
+     réservée à droite pour que le texte ne passe jamais dessous. */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8a8a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-inline-end: 2.75rem;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-secondary);
     outline-offset: 3px;
