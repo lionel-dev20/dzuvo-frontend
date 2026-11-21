@@ -51,16 +51,7 @@ const mask = 'overflow-hidden [mask-image:linear-gradient(to_right,transparent,b
       <div data-reveal :class="mask">
         <ul class="flex w-max gap-4 animate-marquee hover:[animation-play-state:paused] motion-reduce:animate-none">
           <li v-for="(item, position) in topTrack" :key="`${item.id}-${position}`" :class="card">
-            <div class="flex gap-0.5" aria-hidden="true">
-              <svg
-                v-for="star in 5"
-                :key="star"
-                width="14" height="14" viewBox="0 0 20 20"
-                :class="star <= item.rating ? 'fill-secondary' : 'fill-tertiary-500/20'"
-              >
-                <path d="m10 1.6 2.5 5.4 5.9.7-4.4 4 1.2 5.8-5.2-3-5.2 3 1.2-5.8-4.4-4 5.9-.7z" />
-              </svg>
-            </div>
+            <StarRating :value="item.rating" :size="14" />
 
             <blockquote class="text-body text-pretty text-tertiary-600">{{ item.quote }}</blockquote>
 
@@ -78,16 +69,7 @@ const mask = 'overflow-hidden [mask-image:linear-gradient(to_right,transparent,b
       <div data-reveal class="mt-4" :class="mask">
         <ul class="flex w-max gap-4 animate-marquee-reverse hover:[animation-play-state:paused] motion-reduce:animate-none">
           <li v-for="(item, position) in bottomTrack" :key="`${item.id}-${position}`" :class="card">
-            <div class="flex gap-0.5" aria-hidden="true">
-              <svg
-                v-for="star in 5"
-                :key="star"
-                width="14" height="14" viewBox="0 0 20 20"
-                :class="star <= item.rating ? 'fill-secondary' : 'fill-tertiary-500/20'"
-              >
-                <path d="m10 1.6 2.5 5.4 5.9.7-4.4 4 1.2 5.8-5.2-3-5.2 3 1.2-5.8-4.4-4 5.9-.7z" />
-              </svg>
-            </div>
+            <StarRating :value="item.rating" :size="14" />
 
             <blockquote class="text-body text-pretty text-tertiary-600">{{ item.quote }}</blockquote>
 

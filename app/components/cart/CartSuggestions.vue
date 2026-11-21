@@ -45,19 +45,11 @@ const broken = reactive(new Set<number>())
             {{ product.name }}
           </NuxtLink>
 
-          <div v-if="product.reviews" class="mt-1 flex items-center gap-1.5">
-            <div class="flex" aria-hidden="true">
-              <svg
-                v-for="star in 5"
-                :key="star"
-                width="11" height="11" viewBox="0 0 20 20"
-                :class="star <= Math.round(product.rating) ? 'fill-secondary' : 'fill-tertiary-500/20'"
-              >
-                <path d="m10 1.6 2.5 5.4 5.9.7-4.4 4 1.2 5.8-5.2-3-5.2 3 1.2-5.8-4.4-4 5.9-.7z" />
-              </svg>
-            </div>
+          <div class="mt-1 flex items-center gap-1.5">
+            <StarRating :value="product.reviews ? product.rating : 0" :size="11" />
             <span class="text-[11px] text-tertiary-800">
-              {{ product.rating.toFixed(1).replace('.', ',') }} ({{ product.reviews }})
+              <template v-if="product.reviews">{{ product.rating.toFixed(1).replace('.', ',') }} ({{ product.reviews }})</template>
+              <template v-else>Aucun avis</template>
             </span>
           </div>
 

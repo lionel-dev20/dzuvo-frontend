@@ -48,6 +48,10 @@
   --color-secondary-hover: #de0205;
   --color-secondary-active: #c60204;
   --color-secondary-dark: #b90204;
+
+  /* Jaune doré des étoiles de notation : plein quand l'étoile est acquise, en
+     simple contour sinon. Distinct du rouge de marque, réservé à l'action. */
+  --color-star: #f5b800;
   --color-secondary-dark-hover: #940103;
   --color-secondary-dark-active: #6f0102;
   --color-secondary-darker: #560102;
@@ -184,13 +188,13 @@
   /* Surfaces. `primary-darker` porte le fond de page, `primary` les cartes :
      leurs rôles ne changent pas, seules leurs valeurs s'éclaircissent.
 
-     Le fond de page est #EAF0FA à 60 % d'opacité, posé sur le blanc de la
-     page : (234, 240, 250) × 0,6 + (255, 255, 255) × 0,4 = (242, 246, 252),
-     soit #F2F6FC. On écrit la couleur composée plutôt qu'une transparence :
-     `primary-darker` sert aussi de fond à des éléments qui doivent rester
-     opaques (barre d'achat, vignettes du panier). Un fond translucide y
-     laisserait transparaître le contenu qui défile derrière. */
-  --color-primary-darker: #f2f6fc;
+     Le fond de page est #F5F5F5 à 60 % d'opacité, posé sur le blanc de la
+     page : 245 × 0,6 + 255 × 0,4 = 249, soit #F9F9F9. On écrit la couleur
+     composée plutôt qu'une transparence : `primary-darker` sert aussi de fond
+     à des éléments qui doivent rester opaques (barre d'achat, vignettes du
+     panier). Un fond translucide y laisserait transparaître le contenu qui
+     défile derrière. */
+  --color-primary-darker: #f9f9f9;
   --color-primary-dark: #f0f0f0;
   --color-primary: #ffffff;
   --color-primary-hover: #fafafa;

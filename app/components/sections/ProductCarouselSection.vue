@@ -181,20 +181,12 @@ const arrow = 'grid size-11 shrink-0 place-items-center rounded-full bg-tertiary
                 {{ product.name }}
               </NuxtLink>
 
-              <!-- Note : les étoiles sont décoratives, le texte porte l'information. -->
+              <!-- Toujours affichées : cinq contours dorés tant qu'il n'y a pas d'avis. -->
               <div class="mt-2 flex items-center gap-1.5">
-                <div class="flex" aria-hidden="true">
-                  <svg
-                    v-for="star in 5"
-                    :key="star"
-                    width="13" height="13" viewBox="0 0 20 20"
-                    :class="star <= Math.round(product.rating) ? 'fill-secondary' : 'fill-tertiary-500/20'"
-                  >
-                    <path d="m10 1.6 2.5 5.4 5.9.7-4.4 4 1.2 5.8-5.2-3-5.2 3 1.2-5.8-4.4-4 5.9-.7z" />
-                  </svg>
-                </div>
+                <StarRating :value="product.reviews ? product.rating : 0" :size="13" />
                 <span class="text-[11px] text-tertiary-800">
-                  {{ product.rating.toFixed(1).replace('.', ',') }} ({{ product.reviews }} avis)
+                  <template v-if="product.reviews">{{ product.rating.toFixed(1).replace('.', ',') }} ({{ product.reviews }} avis)</template>
+                  <template v-else>Aucun avis</template>
                 </span>
               </div>
 

@@ -16,7 +16,7 @@ const isDark = computed(() => HOME_ROUTES.includes(route.path))
 
 useHead(computed(() => ({
   htmlAttrs: { class: isDark.value ? '' : 'theme-light' },
-  meta: [{ name: 'theme-color', content: isDark.value ? '#030014' : '#f2f6fc' }],
+  meta: [{ name: 'theme-color', content: isDark.value ? '#030014' : '#f9f9f9' }],
 })))
 
 useOrganizationSchema()
