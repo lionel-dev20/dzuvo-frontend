@@ -161,8 +161,34 @@ export default defineNuxtConfig({
    * et les fermer reviendrait à supprimer le paiement.
    */
   routeRules: {
+    /*
+     * Consignes de cache, posées explicitement.
+     *
+     * Le site n'en envoyait aucune — ni sur les pages, ni sur l'API, ni sur les
+     * fichiers de `public/`. Un hébergeur qui annonce sept jours de cache par
+     * défaut (c'est le cas de celui de WordPress, voir `wp-menu.ts`) ou un CDN
+     * qui devine une durée d'après `Last-Modified` garde alors n'importe quoi,
+     * aussi longtemps qu'il le veut : une modification publiée dans WordPress
+     * reste invisible en ligne alors que la purge côté serveur a bien eu lieu.
+     *
+     * Trois niveaux, du plus strict au plus généreux :
+     * - pages : `no-cache` — le navigateur revalide à chaque visite, le rendu
+     *   reste celui du serveur (et son cache de données, purgeable) ;
+     * - API : `no-store` — session, panier et commande ne doivent jamais être
+     *   rangés ailleurs que chez leur propriétaire ;
+     * - fichiers de `public/` : `no-cache` aussi. Leur nom ne change pas quand
+     *   leur contenu change (`essuieglasse2.png`) ; la revalidation par ETag
+     *   coûte une réponse 304 vide, pas un téléchargement.
+     *
+     * Seuls les fichiers de `/_nuxt/` sont mis en cache à long terme : leur nom
+     * porte un condensé du contenu, un nouveau build produit un nouveau nom.
+     */
+    '/api/**': { headers: { 'cache-control': 'no-store' } },
+    '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+
     '/**': {
       headers: {
+        'cache-control': 'no-cache',
         'content-security-policy': [
           "frame-ancestors 'none'",
           "base-uri 'self'",
