@@ -98,18 +98,31 @@
   }
 }
 
-/* Container pleine largeur : gouttière 12px, 32px dès md, 64px dès lg. */
-@utility container {
-  width: 100%;
-  padding-inline: --spacing(3);
+/*
+ * Gouttière de page : 10px sur mobile, 20px dès md, 64px dès lg — et, sur les
+ * grands écrans, une marge qui grandit pour garder le contenu à `--page-max`.
+ *
+ * C'est le seul endroit où la largeur du site se règle. Elle se pose sur la
+ * section elle-même (`px-page`) plutôt que sur un conteneur interne : le fond
+ * d'une section reste ainsi pleine largeur, seul son contenu est centré.
+ */
+@utility px-page {
+  --gutter: --spacing(2.5);
+  padding-inline: max(var(--gutter), calc((100% - var(--page-max)) / 2));
 
   @media (width >= 768px) {
-    padding-inline: --spacing(8);
+    --gutter: --spacing(5);
   }
 
   @media (width >= 1024px) {
-    padding-inline: --spacing(30);
+    --gutter: --spacing(16);
   }
+}
+
+/* Container : même mesure que `px-page`, pour les blocs qui le préfèrent. */
+@utility container {
+  width: 100%;
+  padding-inline: max(var(--gutter, --spacing(3)), calc((100% - var(--page-max)) / 2));
 }
 
 /* Champ de formulaire : même gabarit partout (contact, compte, recherche). */

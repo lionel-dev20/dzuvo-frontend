@@ -40,7 +40,7 @@ const arrow = 'grid size-9 shrink-0 place-items-center rounded-full bg-tertiary-
 </script>
 
 <template>
-  <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="Nos meilleures catégories">
+  <section ref="root" class="px-page" aria-label="Nos meilleures catégories">
     <!-- Rangée 1 — quatre cartes catégorie (inchangée) -->
     <h3 class="text-center pb-4 md:pb-12">{{ title }}</h3>
     <ul data-reveal-group class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

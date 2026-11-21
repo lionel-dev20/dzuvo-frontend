@@ -61,7 +61,7 @@ useSeo({
 
     <main
       id="main"
-      class="relative flex flex-1 flex-col items-center justify-center px-2.5 py-16 text-center md:px-5 lg:px-24 lg:py-24"
+      class="relative flex flex-1 flex-col items-center justify-center px-page py-16 text-center lg:py-24"
     >
       <img
         src="/images/logos/dzuvo.png"
@@ -144,7 +144,7 @@ useSeo({
     </main>
 
     <!-- Pied de page réduit : de quoi nous joindre, rien de plus. -->
-    <footer class="relative border-t border-tertiary-500/10 px-2.5 py-8 md:px-5 lg:px-24">
+    <footer class="relative border-t border-tertiary-500/10 px-page py-8">
       <div class="flex flex-col items-center gap-6 text-center lg:flex-row lg:justify-between lg:text-left">
         <div class="flex flex-col items-center gap-1 lg:items-start">
           <a

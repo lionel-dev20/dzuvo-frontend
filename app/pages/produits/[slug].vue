@@ -60,7 +60,7 @@ useSeo({
 </script>
 
 <template>
-  <div v-if="product" ref="root" class="px-2.5 pt-10 pb-20 md:px-5 lg:px-24">
+  <div v-if="product" ref="root" class="px-page pt-10 pb-20">
     <nav aria-label="Fil d’Ariane" class="mb-8 text-[13px] text-tertiary-800">
       <ol class="flex flex-wrap items-center gap-2">
         <li><NuxtLink to="/" class="hover:text-secondary">Accueil</NuxtLink></li>
