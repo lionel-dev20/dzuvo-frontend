@@ -73,3 +73,56 @@ métadonnées WordPress, pas par ACF.
 
 Une seule copie à la fois, comme pour les menus : ne pas laisser un bloc
 équivalent dans `wp-config.php`.
+
+### acf/dzuvo-homepage.json
+
+Export des 7 groupes de champs ACF de la page d'accueil (68 champs), généré à
+partir des définitions du mu-plugin. Il sert à les **importer à la main** :
+*ACF > Outils > Importer des groupes de champs*.
+
+Les groupes ciblant la page d'accueil utilisent la règle « page d'accueil
+statique » (Réglages > Lecture), valable sur tout WordPress.
+
+**Inutile si `dzuvo-home` est installé** : le mu-plugin déclare déjà ces groupes
+(mêmes clés). Les importer en plus créerait des copies en base que ACF signale
+comme « synchronisation disponible ». À n'utiliser que pour inspecter les
+champs, ou pour travailler sans le mu-plugin. Si les champs sont modifiés dans
+le mu-plugin, régénérer ce fichier.
+
+## mu-plugins/dzuvo-product-offers.php
+
+Ajoute à chaque produit WooCommerce des **offres de quantité** (« 2 articles :
+-10 % »), affichées sur la fiche sous forme de lots et appliquées au panier et à
+la commande par le site Nuxt.
+
+**Installation :** déposer le fichier dans `wp-content/mu-plugins/`. Rien à
+activer.
+
+**Réglage, produit par produit :** Produits > modifier le produit > onglet
+**Général**, sous les prix, bloc « Offres de quantité (site DZUVO) » :
+
+| Champ | Exemple |
+| --- | --- |
+| Offre 1 — à partir de (articles) | 2 |
+| Offre 1 — remise (%) | 10 |
+| Offre 2 — à partir de (articles) | 3 |
+| Offre 2 — remise (%) | 15 |
+
+- La remise s'applique à **toutes** les unités dès que le seuil est atteint, sur
+  le prix du moment (promotion comprise). Les offres ne se cumulent pas.
+- Une offre incomplète (seuil < 2, remise vide ou > 90 %) est ignorée : mieux
+  vaut aucune offre qu'une remise à moitié saisie.
+- Laisser les champs vides : le produit n'a pas d'offre, la fiche garde le
+  simple sélecteur de quantité.
+- Un code avantage s'applique **après** l'offre, sur le prix déjà remisé.
+
+## Avis clients
+
+Ils se lisent et se modèrent dans WooCommerce (**Produits > Avis**) ; aucun code
+WordPress n'est nécessaire.
+
+- Un avis déposé sur le site arrive en **attente** : il ne paraît qu'une fois
+  approuvé. Le courriel de l'auteur n'est jamais publié.
+- Il paraît sur le site au plus tard deux minutes après l'approbation.
+- Les avis doivent être activés : WooCommerce > Réglages > Produits >
+  « Activer les avis sur les produits ».

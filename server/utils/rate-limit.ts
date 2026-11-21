@@ -10,6 +10,8 @@ const LIMITS: Record<string, number> = {
   register: 5,
   contact: 5,
   newsletter: 5,
+  // Un avis public : peu de tentatives par adresse, c'est un point d'entrée de spam.
+  review: 3,
   // Chaque appel crée une vraie commande WooCommerce : le plafond protège la
   // boutique d'un flot de commandes fantômes, tout en laissant place aux
   // reprises légitimes (carte refusée, changement d'adresse, hésitation).

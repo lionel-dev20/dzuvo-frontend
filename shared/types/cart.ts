@@ -26,7 +26,12 @@ export interface CartLine {
   quantity: number
   /** Plafond imposé par le stock WooCommerce, absent si le stock n'est pas géré. */
   maxQuantity?: number
+  /** Total de la ligne, offre de quantité déjà déduite. */
   lineTotal: number
+  /** Offre de quantité appliquée à cette ligne (%), absente sinon. */
+  offerPercent?: number
+  /** Économie apportée par cette offre, en dollars. */
+  offerSavings?: number
   inStock: boolean
 }
 

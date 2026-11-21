@@ -1,4 +1,6 @@
 import type { CatalogCategory, CatalogProduct, ProductQuery, ProductSort } from '#shared/types/catalog'
+import type { ProductReview, ReviewPayload, ReviewsResult } from '#shared/types/reviews'
+import { normalizeOffers } from '#shared/utils/offers'
 import { basicAuthHeader, isSecure, normalizeBaseUrl, signOAuthUrl } from './woo-auth'
 
 /**
@@ -42,6 +44,8 @@ interface WooProduct {
   stock_quantity: number | null
   cross_sell_ids: number[]
   upsell_ids: number[]
+  /** Champs personnalisés : les offres de quantité y sont saisies (voir `offersOf`). */
+  meta_data?: { key: string, value: unknown }[]
 }
 
 export function wooConfig() {
@@ -214,7 +218,31 @@ function toProduct(raw: WooProduct): CatalogProduct {
     reviews: raw.rating_count ?? 0,
     attributes: (raw.attributes ?? []).map(a => ({ name: a.name, value: a.options.join(', ') })),
     badge: raw.on_sale ? 'Promo' : raw.featured ? 'N° 1 des ventes' : undefined,
+    ...offersOf(raw),
   }
+}
+
+/**
+ * Offres de quantité saisies sur la fiche WooCommerce.
+ *
+ * Elles vivent dans quatre champs personnalisés (`dzuvo_offer1_qty`,
+ * `dzuvo_offer1_percent`, puis les mêmes pour l'offre 2), posés par l'extension
+ * « DZUVO — offres de quantité » dans l'onglet Général du produit. Les clés
+ * n'ont volontairement pas de tiret bas initial : WooCommerce ne publie pas les
+ * métadonnées « privées » dans son API.
+ *
+ * Renvoie un objet vide, et non `undefined`, pour pouvoir être étalé : un produit
+ * sans offre ne porte alors aucune clé `quantityOffers`.
+ */
+function offersOf(raw: WooProduct): { quantityOffers?: CatalogProduct['quantityOffers'] } {
+  const meta = new Map((raw.meta_data ?? []).map(entry => [entry.key, entry.value]))
+
+  const offers = normalizeOffers([1, 2].map(rank => ({
+    quantity: meta.get(`dzuvo_offer${rank}_qty`),
+    percent: meta.get(`dzuvo_offer${rank}_percent`),
+  })))
+
+  return offers.length ? { quantityOffers: offers } : {}
 }
 
 function stripHtml(html: string) {
@@ -502,7 +530,12 @@ export interface WooOrder {
  * ce total-là, jamais celui du navigateur, qui part chez Stripe.
  */
 export async function createOrder(payload: {
-  lineItems: { product_id: number, quantity: number }[]
+  /**
+   * `subtotal` et `total` ne se renseignent que pour une ligne remisée par une
+   * offre de quantité : WooCommerce, sinon, recalculerait le prix catalogue et
+   * effacerait la remise annoncée au client.
+   */
+  lineItems: { product_id: number, quantity: number, subtotal?: string, total?: string }[]
   couponCode?: string
   customerId?: number
   billing: WooAddress
@@ -566,3 +599,82 @@ export async function cancelOrder(id: number) {
   return wooMutate<WooOrder>('PUT', `orders/${id}`, { status: 'cancelled' })
 }
 
+
+/* ---------- Avis ---------- */
+
+interface WooReview {
+  id: number
+  date_created_gmt: string
+  reviewer: string
+  review: string
+  rating: number
+  verified: boolean
+}
+
+/** Entités les plus courantes : WooCommerce renvoie le texte déjà échappé. */
+function decodeEntities(text: string) {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;|&apos;/g, '\'')
+    .replace(/&nbsp;/g, ' ')
+}
+
+/**
+ * Avis approuvés d'un produit, du plus récent au plus ancien.
+ *
+ * Seuls les champs affichables sont gardés : WooCommerce renvoie aussi le
+ * courriel de l'auteur à un client API, et il ne doit jamais atteindre un
+ * navigateur.
+ */
+export async function fetchReviews(productId: number): Promise<ReviewsResult> {
+  const { data, total } = await wooFetch<WooReview[]>('products/reviews', {
+    product: productId,
+    status: 'approved',
+    per_page: 50,
+    orderby: 'date_gmt',
+    order: 'desc',
+  })
+
+  const items: ProductReview[] = data
+    .map(raw => ({
+      id: raw.id,
+      author: decodeEntities(stripHtml(raw.reviewer || '')) || 'Client DZUVO',
+      rating: Math.min(5, Math.max(1, Math.round(Number(raw.rating) || 0))),
+      date: raw.date_created_gmt ? `${raw.date_created_gmt}Z` : '',
+      content: decodeEntities(stripHtml(raw.review || '')),
+      verified: Boolean(raw.verified),
+    }))
+    .filter(review => review.content)
+
+  // La répartition porte sur les avis lus (50 au plus) : c'est le même
+  // échantillon que la liste affichée, donc des barres qui s'accordent avec elle.
+  const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as ReviewsResult['distribution']
+  for (const review of items) distribution[review.rating as 1 | 2 | 3 | 4 | 5]++
+
+  const average = items.length
+    ? items.reduce((sum, review) => sum + review.rating, 0) / items.length
+    : 0
+
+  return { items, total: Math.max(total, items.length), average, distribution }
+}
+
+/**
+ * Dépose un avis.
+ *
+ * Il part **en attente** (`hold`) : la boutique le relit avant publication.
+ * Laisser WooCommerce choisir ouvrirait la porte à n'importe quel texte, lien
+ * ou publicité compris, visible aussitôt par tous les visiteurs.
+ */
+export async function createReview(payload: Pick<ReviewPayload, 'productId' | 'name' | 'email' | 'rating' | 'comment'>) {
+  return wooMutate<{ id: number }>('POST', 'products/reviews', {
+    product_id: payload.productId,
+    status: 'hold',
+    reviewer: payload.name.trim(),
+    reviewer_email: payload.email.trim(),
+    rating: payload.rating,
+    review: payload.comment.trim(),
+  })
+}

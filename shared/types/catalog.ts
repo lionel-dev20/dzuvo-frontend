@@ -24,6 +24,15 @@ export interface ProductImage {
   alt: string
 }
 
+/**
+ * Offre de quantité, réglée produit par produit dans WooCommerce :
+ * à partir de `quantity` articles, `percent` % de remise sur la ligne.
+ */
+export interface QuantityOffer {
+  quantity: number
+  percent: number
+}
+
 export interface CatalogProduct {
   id: number
   slug: string
@@ -54,6 +63,8 @@ export interface CatalogProduct {
   /** Caractéristiques techniques, telles que saisies dans WooCommerce. */
   attributes: { name: string, value: string }[]
   badge?: string
+  /** Offres « prenez-en plus, payez moins », absentes si le produit n'en a pas. */
+  quantityOffers?: QuantityOffer[]
 }
 
 /** Réponse paginée : le total vient des en-têtes WooCommerce. */

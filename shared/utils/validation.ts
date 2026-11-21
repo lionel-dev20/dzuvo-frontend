@@ -1,5 +1,7 @@
 import type { ContactPayload, FieldErrors, LoginPayload, NewsletterPayload, RegisterPayload } from '#shared/types/forms'
 import type { CheckoutAddress } from '#shared/types/checkout'
+import type { ReviewPayload } from '#shared/types/reviews'
+import { REVIEW_COMMENT_MAX, REVIEW_COMMENT_MIN } from '#shared/types/reviews'
 import { findCity } from '#shared/config/cities'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i
@@ -157,6 +159,32 @@ export function validateAddress(payload: Partial<CheckoutAddress>): FieldErrors<
 
   if (!payload.postcode?.trim()) errors.postcode = 'Le code postal est requis.'
   else if (!isPostcodeCA(payload.postcode)) errors.postcode = 'Code postal invalide (format A1A 1A1).'
+
+  return errors
+}
+
+/** Avis produit : validé de la même façon dans le formulaire et dans l'API. */
+export function validateReview(payload: Partial<ReviewPayload>): FieldErrors<ReviewPayload> {
+  const errors: FieldErrors<ReviewPayload> = {}
+
+  if (!Number.isInteger(Number(payload.productId)) || Number(payload.productId) <= 0) {
+    errors.productId = 'Produit introuvable.'
+  }
+
+  const name = payload.name?.trim() ?? ''
+  if (!name) errors.name = 'Votre prénom est requis.'
+  else if (name.length > 60) errors.name = '60 caractères au maximum.'
+
+  if (!payload.email?.trim()) errors.email = 'Votre courriel est requis.'
+  else if (!isEmail(payload.email)) errors.email = 'Format de courriel invalide.'
+
+  const rating = Number(payload.rating)
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) errors.rating = 'Choisissez une note de 1 à 5.'
+
+  const comment = payload.comment?.trim() ?? ''
+  if (!comment) errors.comment = 'Votre avis est requis.'
+  else if (comment.length < REVIEW_COMMENT_MIN) errors.comment = `Quelques mots de plus, s’il vous plaît (${REVIEW_COMMENT_MIN} caractères minimum).`
+  else if (comment.length > REVIEW_COMMENT_MAX) errors.comment = `${REVIEW_COMMENT_MAX} caractères au maximum.`
 
   return errors
 }
