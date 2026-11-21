@@ -128,8 +128,8 @@ add_action( 'init', function () {
 	dzuvo_home_register_type( DZUVO_SPOTLIGHT_TYPE, 'Panneau', 'Panneaux larges' );
 } );
 
-dzuvo_home_add_meta_box( DZUVO_OFFER_TYPE, 'dzuvo_offer_details', 'Contenu de la carte', dzuvo_home_offer_fields() );
-dzuvo_home_add_meta_box( DZUVO_SPOTLIGHT_TYPE, 'dzuvo_spotlight_details', 'Contenu du panneau', dzuvo_home_spotlight_fields() );
+dzuvo_home_add_field_group( 'offer', 'Contenu de la carte', dzuvo_home_offer_fields(), dzuvo_home_location_post_type( DZUVO_OFFER_TYPE ) );
+dzuvo_home_add_field_group( 'spotlight', 'Contenu du panneau', dzuvo_home_spotlight_fields(), dzuvo_home_location_post_type( DZUVO_SPOTLIGHT_TYPE ) );
 
 add_filter( 'manage_' . DZUVO_OFFER_TYPE . '_posts_columns', function ( $columns ) {
 	return [
@@ -146,12 +146,12 @@ add_action( 'manage_' . DZUVO_OFFER_TYPE . '_posts_custom_column', function ( $c
 		echo has_post_thumbnail( $post_id ) ? get_the_post_thumbnail( $post_id, [ 60, 60 ] ) : '<span class="description">—</span>';
 	}
 	if ( 'offre' === $column ) {
-		$price    = get_post_meta( $post_id, '_dzuvo_price', true );
-		$headline = get_post_meta( $post_id, '_dzuvo_headline', true );
+		$price    = dzuvo_home_meta( $post_id, 'price' );
+		$headline = dzuvo_home_meta( $post_id, 'headline' );
 		echo esc_html( $headline ?: ( $price ?: '—' ) );
 	}
 	if ( 'until' === $column ) {
-		echo esc_html( get_post_meta( $post_id, '_dzuvo_until', true ) ?: '—' );
+		echo esc_html( dzuvo_home_meta( $post_id, 'until' ) ?: '—' );
 	}
 }, 10, 2 );
 

@@ -36,6 +36,8 @@ function dzuvo_home_testimonial_fields() {
 			'key'   => 'rating',
 			'label' => 'Note sur 5',
 			'type'  => 'number',
+			'min'   => 1,
+			'max'   => 5,
 			'help'  => 'Nombre entier de 1 à 5. Vide ou hors bornes : cinq étoiles.',
 		],
 	];
@@ -48,7 +50,7 @@ add_action( 'init', function () {
 	] );
 } );
 
-dzuvo_home_add_meta_box( DZUVO_TESTIMONIAL_TYPE, 'dzuvo_testimonial_details', 'Contenu du témoignage', dzuvo_home_testimonial_fields() );
+dzuvo_home_add_field_group( 'testimonial', 'Contenu du témoignage', dzuvo_home_testimonial_fields(), dzuvo_home_location_post_type( DZUVO_TESTIMONIAL_TYPE ) );
 
 add_filter( 'manage_' . DZUVO_TESTIMONIAL_TYPE . '_posts_columns', function ( $columns ) {
 	return [
@@ -62,13 +64,13 @@ add_filter( 'manage_' . DZUVO_TESTIMONIAL_TYPE . '_posts_columns', function ( $c
 
 add_action( 'manage_' . DZUVO_TESTIMONIAL_TYPE . '_posts_custom_column', function ( $column, $post_id ) {
 	if ( 'quote' === $column ) {
-		echo esc_html( wp_trim_words( get_post_meta( $post_id, '_dzuvo_quote', true ), 14 ) ?: '—' );
+		echo esc_html( wp_trim_words( dzuvo_home_meta( $post_id, 'quote' ), 14 ) ?: '—' );
 	}
 	if ( 'city' === $column ) {
-		echo esc_html( get_post_meta( $post_id, '_dzuvo_city', true ) ?: '—' );
+		echo esc_html( dzuvo_home_meta( $post_id, 'city' ) ?: '—' );
 	}
 	if ( 'rating' === $column ) {
-		$rating = (int) get_post_meta( $post_id, '_dzuvo_rating', true );
+		$rating = (int) dzuvo_home_meta( $post_id, 'rating' );
 		echo esc_html( $rating >= 1 && $rating <= 5 ? str_repeat( '★', $rating ) : '★★★★★' );
 	}
 }, 10, 2 );

@@ -42,7 +42,7 @@ add_action( 'init', function () {
 	dzuvo_home_register_type( DZUVO_BANNER_TYPE, 'Bannière', 'Bannières d’accès' );
 } );
 
-dzuvo_home_add_meta_box( DZUVO_BANNER_TYPE, 'dzuvo_banner_details', 'Contenu de la bannière', dzuvo_home_banner_fields() );
+dzuvo_home_add_field_group( 'banner', 'Contenu de la bannière', dzuvo_home_banner_fields(), dzuvo_home_location_post_type( DZUVO_BANNER_TYPE ) );
 
 add_filter( 'manage_' . DZUVO_BANNER_TYPE . '_posts_columns', function ( $columns ) {
 	return [
@@ -59,10 +59,10 @@ add_action( 'manage_' . DZUVO_BANNER_TYPE . '_posts_custom_column', function ( $
 		echo has_post_thumbnail( $post_id ) ? get_the_post_thumbnail( $post_id, [ 80, 45 ] ) : '<span class="description">—</span>';
 	}
 	if ( 'label' === $column ) {
-		echo esc_html( get_post_meta( $post_id, '_dzuvo_label', true ) ?: '—' );
+		echo esc_html( dzuvo_home_meta( $post_id, 'label' ) ?: '—' );
 	}
 	if ( 'to' === $column ) {
-		echo esc_html( get_post_meta( $post_id, '_dzuvo_to', true ) ?: '—' );
+		echo esc_html( dzuvo_home_meta( $post_id, 'to' ) ?: '—' );
 	}
 }, 10, 2 );
 
