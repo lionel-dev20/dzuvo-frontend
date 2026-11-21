@@ -187,7 +187,7 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
             <button
               type="button"
               class="min-h-12 flex-1 justify-center"
-              :class="canAdd ? 'btn-primary' : 'btn-secondary'"
+              :class="canAdd ? 'btn-primary !bg-secondary-hover hover:!bg-secondary-light active:!bg-secondary-active' : 'btn-secondary'"
               :disabled="product.inStock && !canAdd"
               @click="addToCart"
             >

@@ -133,6 +133,11 @@
   }
 }
 
+/* Le gabarit `field` fixe son propre padding : on garde la place du chevron. */
+select.field {
+  padding-inline-end: 2.75rem;
+}
+
 /* Champ en erreur : la bordure double le message, jamais seule. */
 @utility field-invalid {
   border-color: var(--color-secondary);

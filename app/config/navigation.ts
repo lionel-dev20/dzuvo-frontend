@@ -31,4 +31,4 @@ export const headerCta: NavItem | null = { label: 'Créer un compte', to: '/insc
  * l'en-tête, qui choisit son allure. La partager évite qu'ils divergent : une
  * page sombre coiffée d'une barre blanche, ou l'inverse.
  */
-export const HOME_ROUTES = ['/', '/home2']
+export const HOME_ROUTES = ['/home2']
