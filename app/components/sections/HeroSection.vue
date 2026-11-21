@@ -117,7 +117,7 @@ function onLeave(element: Element, done: () => void) {
     <!-- Remonte au-delà du header (transparent) pour un fond d'un seul tenant. -->
     <FluidBackdrop class="-top-64! -z-10" />
 
-    <div class="px-2.5 md:px-5 lg:px-24 relative flex min-h-[78vh] flex-col justify-between gap-16 py-20 lg:mt-5 lg:py-28">
+    <div class="px-page relative flex min-h-[78vh] flex-col justify-between gap-16 py-20 lg:mt-5 lg:py-28">
       <Transition :css="false" mode="out-in" @enter="onEnter" @leave="onLeave">
         <div
           :key="activeSlide.id"

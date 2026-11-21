@@ -1,174 +1,197 @@
 <?php
 /**
- * Cadre de saisie commun aux sections de la page d'accueil.
+ * Cadre de saisie commun aux sections de la page d'accueil — branché sur ACF.
  *
- * Chaque section décrit ses champs dans un tableau ; ce fichier se charge de
- * les afficher, de les enregistrer et de les relire. Sans cela, le même code
- * de boîte à métadonnées — nonce, vérification des droits, nettoyage des
- * valeurs — serait recopié dans chaque type de contenu, avec le risque qu'une
- * copie oublie une de ces trois précautions.
+ * Chaque section décrit ses champs dans un tableau (clé, libellé, type, aide).
+ * Ce fichier traduit ces tableaux en groupes de champs ACF, et relit les
+ * valeurs enregistrées. Les sections ne parlent donc jamais à ACF
+ * directement : changer de mécanique de saisie ne touche que ce fichier.
  *
- * Les clés de métadonnées sont préfixées d'un tiret bas : WordPress les
- * considère alors comme internes et ne les expose pas dans l'écran
- * « Champs personnalisés », où une saisie libre les contredirait.
+ * ACF **gratuit** suffit : aucun répéteur, aucune page d'options. Les listes
+ * (slides, offres…) restent des types de contenu portant chacun un groupe de
+ * champs, et les textes fixes se saisissent sur la page d'accueil WordPress.
+ *
+ * Deux choix qui ne se voient pas dans le code, et qui comptent :
+ *
+ * - **La lecture ne dépend pas d'ACF.** ACF stocke ses valeurs dans les
+ *   métadonnées ordinaires de WordPress ; on les relit avec `get_post_meta`.
+ *   Désactiver ACF ôte les écrans de saisie mais ne casse pas la route
+ *   publique : le site continue de recevoir ce qui a été saisi.
+ *
+ * - **Le préfixe `home_`.** ACF enregistre, pour chaque champ `x`, une seconde
+ *   métadonnée `_x` qui retient la clé du champ. Un champ nommé `dzuvo_x`
+ *   écraserait donc l'ancienne métadonnée `_dzuvo_x` de la version sans ACF,
+ *   et avec elle les contenus déjà saisis.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Déclare une boîte de saisie pour un type de contenu.
- *
- * @param string $post_type Type de contenu concerné.
- * @param string $id        Identifiant de la boîte.
- * @param string $title     Titre affiché au-dessus des champs.
- * @param array  $fields    Champs, au format décrit dans dzuvo_home_render_field().
- */
-function dzuvo_home_add_meta_box( $post_type, $id, $title, array $fields ) {
-	add_action( 'add_meta_boxes', function () use ( $post_type, $id, $title, $fields ) {
-		add_meta_box(
-			$id,
-			$title,
-			function ( $post ) use ( $id, $fields ) {
-				wp_nonce_field( $id, $id . '_nonce' );
-				echo '<div class="dzuvo-fields">';
-				foreach ( $fields as $field ) {
-					dzuvo_home_render_field( $post->ID, $field );
-				}
-				echo '</div>';
-			},
-			$post_type,
-			'normal',
-			'high'
-		);
-	} );
+/** Préfixe des noms de champs ACF (donc des métadonnées). */
+const DZUVO_HOME_FIELD_PREFIX = 'home_';
 
-	add_action( 'save_post_' . $post_type, function ( $post_id ) use ( $post_type, $id, $fields ) {
-		dzuvo_home_save_fields( $post_id, $post_type, $id, $fields );
-	} );
+/**
+ * Identifiant de la page WordPress qui porte les textes fixes et la sélection
+ * de produits.
+ *
+ * Par ordre de priorité : la constante `DZUVO_HOME_PAGE_ID` (wp-config.php),
+ * la page d'accueil statique de Réglages > Lecture, puis une page dont
+ * l'adresse est « accueil ». Le filtre `dzuvo_home_page_id` a le dernier mot.
+ *
+ * Zéro veut dire « aucune page trouvée » : les groupes de champs ne s'affichent
+ * alors nulle part, et l'administration le dit.
+ */
+function dzuvo_home_page_id() {
+	static $resolved = null;
+
+	if ( null !== $resolved ) {
+		return $resolved;
+	}
+
+	$candidate = defined( 'DZUVO_HOME_PAGE_ID' ) ? (int) DZUVO_HOME_PAGE_ID : (int) get_option( 'page_on_front' );
+
+	if ( ! $candidate ) {
+		$page      = get_page_by_path( 'accueil' );
+		$candidate = $page ? (int) $page->ID : 0;
+	}
+
+	$resolved = (int) apply_filters( 'dzuvo_home_page_id', $candidate );
+
+	return $resolved;
+}
+
+/** Clé ACF d'un champ : stable, donc la même d'un site à l'autre. */
+function dzuvo_home_acf_key( $group, $key ) {
+	return 'field_dzuvo_' . $group . '_' . $key;
 }
 
 /**
- * Affiche un champ.
+ * Traduit un champ du schéma interne en champ ACF.
  *
- * Types acceptés : text, textarea, url, number, select, checkbox.
- * Clés reconnues : key, label, type, help, placeholder, options, step.
+ * Types du schéma : text, textarea, url, number, select, checkbox.
+ *
+ * `url` devient un champ texte et non un champ « URL » d'ACF : ce dernier
+ * exige une adresse complète, et refuserait « /categories/batteries », qui est
+ * précisément la forme attendue (une route du site, pas un domaine).
  */
-function dzuvo_home_render_field( $post_id, array $field ) {
-	$key   = $field['key'];
-	$type  = $field['type'] ?? 'text';
-	$name  = '_dzuvo_' . $key;
-	$value = get_post_meta( $post_id, $name, true );
-	$id    = 'dzuvo-field-' . $key;
+function dzuvo_home_acf_field( $group, array $field ) {
+	$type = $field['type'] ?? 'text';
 
-	echo '<p style="margin:0 0 1.1rem">';
-	printf(
-		'<label for="%s" style="display:block;font-weight:600;margin-bottom:.3rem">%s</label>',
-		esc_attr( $id ),
-		esc_html( $field['label'] )
-	);
+	$acf = [
+		'key'          => dzuvo_home_acf_key( $group, $field['key'] ),
+		'label'        => $field['label'],
+		'name'         => DZUVO_HOME_FIELD_PREFIX . $field['key'],
+		'instructions' => $field['help'] ?? '',
+		'required'     => 0,
+	];
 
 	switch ( $type ) {
 		case 'textarea':
-			printf(
-				'<textarea id="%s" name="%s" rows="3" class="large-text" placeholder="%s">%s</textarea>',
-				esc_attr( $id ),
-				esc_attr( $name ),
-				esc_attr( $field['placeholder'] ?? '' ),
-				esc_textarea( $value )
-			);
-			break;
+			return $acf + [
+				'type'        => 'textarea',
+				'rows'        => 3,
+				'new_lines'   => '',
+				'placeholder' => $field['placeholder'] ?? '',
+			];
 
 		case 'select':
-			printf( '<select id="%s" name="%s">', esc_attr( $id ), esc_attr( $name ) );
-			foreach ( $field['options'] as $option_value => $option_label ) {
-				printf(
-					'<option value="%s"%s>%s</option>',
-					esc_attr( $option_value ),
-					selected( $value, $option_value, false ),
-					esc_html( $option_label )
-				);
-			}
-			echo '</select>';
-			break;
+			return $acf + [
+				'type'          => 'select',
+				'choices'       => $field['options'],
+				'default_value' => $field['default'] ?? array_key_first( $field['options'] ),
+				'allow_null'    => 0,
+				'multiple'      => 0,
+				'ui'            => 0,
+				'return_format' => 'value',
+			];
 
 		case 'checkbox':
-			printf(
-				'<input type="checkbox" id="%s" name="%s" value="1"%s>',
-				esc_attr( $id ),
-				esc_attr( $name ),
-				checked( $value, '1', false )
-			);
-			break;
+			return $acf + [
+				'type'          => 'true_false',
+				'ui'            => 1,
+				'default_value' => 0,
+				'message'       => '',
+			];
 
 		case 'number':
-			printf(
-				'<input type="number" id="%s" name="%s" value="%s" step="%s" class="small-text">',
-				esc_attr( $id ),
-				esc_attr( $name ),
-				esc_attr( $value ),
-				esc_attr( $field['step'] ?? '1' )
-			);
-			break;
+			return $acf + [
+				'type' => 'number',
+				'step' => $field['step'] ?? 1,
+				'min'  => $field['min'] ?? '',
+				'max'  => $field['max'] ?? '',
+			];
 
 		default:
-			printf(
-				'<input type="text" id="%s" name="%s" value="%s" class="large-text" placeholder="%s">',
-				esc_attr( $id ),
-				esc_attr( $name ),
-				esc_attr( $value ),
-				esc_attr( $field['placeholder'] ?? '' )
-			);
+			return $acf + [
+				'type'        => 'text',
+				'placeholder' => $field['placeholder'] ?? '',
+			];
 	}
-
-	if ( ! empty( $field['help'] ) ) {
-		printf( '<span class="description" style="display:block;margin-top:.25rem">%s</span>', esc_html( $field['help'] ) );
-	}
-
-	echo '</p>';
 }
 
 /**
- * Enregistre les champs d'une boîte.
+ * Déclare un groupe de champs ACF.
  *
- * Trois vérifications, dans cet ordre : la requête vient bien du formulaire
- * (nonce), ce n'est pas un enregistrement automatique — qui ne transporte pas
- * les champs et les effacerait — et l'utilisateur a le droit de modifier ce
- * contenu.
+ * @param string $id        Identifiant du groupe (sert aussi à fabriquer les clés de champs).
+ * @param string $title     Titre affiché au-dessus des champs.
+ * @param array  $fields    Champs au format du schéma interne, ou champs ACF
+ *                          déjà formés (onglets, messages) s'ils portent un `key` ACF.
+ * @param array|callable $location Règles d'affichage ACF, ou fonction qui les renvoie.
+ * @param int    $order     Position quand plusieurs groupes partagent un écran.
  */
-function dzuvo_home_save_fields( $post_id, $post_type, $box_id, array $fields ) {
-	$nonce = $_POST[ $box_id . '_nonce' ] ?? '';
-
-	if ( ! is_string( $nonce ) || ! wp_verify_nonce( $nonce, $box_id ) ) {
-		return;
-	}
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		return;
-	}
-	if ( ! current_user_can( 'edit_post', $post_id ) ) {
-		return;
-	}
-
-	foreach ( $fields as $field ) {
-		$name = '_dzuvo_' . $field['key'];
-		$raw  = $_POST[ $name ] ?? null;
-
-		// Une case décochée n'est pas envoyée : son absence vaut « non ».
-		if ( ( $field['type'] ?? 'text' ) === 'checkbox' ) {
-			update_post_meta( $post_id, $name, $raw ? '1' : '' );
-			continue;
+function dzuvo_home_add_field_group( $id, $title, array $fields, $location, $order = 0 ) {
+	add_action( 'acf/init', function () use ( $id, $title, $fields, $location, $order ) {
+		if ( ! function_exists( 'acf_add_local_field_group' ) ) {
+			return;
 		}
 
-		if ( null === $raw ) {
-			continue;
-		}
-
-		update_post_meta( $post_id, $name, dzuvo_home_sanitize_field( $raw, $field ) );
-	}
+		acf_add_local_field_group( [
+			'key'                   => 'group_dzuvo_' . $id,
+			'title'                 => $title,
+			'fields'                => array_map(
+				static fn( $field ) => isset( $field['acf'] ) ? $field['acf'] : dzuvo_home_acf_field( $id, $field ),
+				$fields
+			),
+			// Un appelable est résolu ici, à `acf/init` : l'identifiant de la page
+			// d'accueil n'est pas encore connu quand les fichiers se chargent.
+			'location'              => is_callable( $location ) ? $location() : $location,
+			'menu_order'            => $order,
+			'position'              => 'normal',
+			'style'                 => 'default',
+			'label_placement'       => 'top',
+			'instruction_placement' => 'label',
+			'hide_on_screen'        => '',
+		] );
+	} );
 }
 
-/** Nettoyage d'une valeur selon le type de champ déclaré. */
+/** Règle d'affichage : les fiches d'un type de contenu. */
+function dzuvo_home_location_post_type( $post_type ) {
+	return [ [ [ 'param' => 'post_type', 'operator' => '==', 'value' => $post_type ] ] ];
+}
+
+/** Règle d'affichage : la page d'accueil WordPress (aucune si introuvable). */
+function dzuvo_home_location_home_page() {
+	$page_id = dzuvo_home_page_id();
+
+	// Un identifiant nul ferait correspondre la règle à « aucune page » côté
+	// ACF, mais autant ne rien déclarer que laisser le doute.
+	if ( ! $page_id ) {
+		return [];
+	}
+
+	return [ [ [ 'param' => 'page', 'operator' => '==', 'value' => (string) $page_id ] ] ];
+}
+
+/**
+ * Nettoyage d'une valeur selon le type de champ déclaré.
+ *
+ * Appliqué **à la lecture**. ACF enregistre ce qu'on lui donne, et ce contenu
+ * part ensuite vers un autre site : mieux vaut ne jamais servir autre chose
+ * que du texte brut, quelle que soit la manière dont la valeur est arrivée en
+ * base (écran ACF, import, WP-CLI).
+ */
 function dzuvo_home_sanitize_field( $raw, array $field ) {
 	$raw = is_scalar( $raw ) ? (string) $raw : '';
 
@@ -195,6 +218,11 @@ function dzuvo_home_sanitize_field( $raw, array $field ) {
 	}
 }
 
+/** Valeur brute d'un champ ACF, relue dans les métadonnées. */
+function dzuvo_home_meta( $post_id, $key ) {
+	return get_post_meta( $post_id, DZUVO_HOME_FIELD_PREFIX . $key, true );
+}
+
 /**
  * Relit les champs d'un contenu, prêts à être servis.
  *
@@ -207,20 +235,23 @@ function dzuvo_home_get_fields( $post_id, array $fields ) {
 
 	foreach ( $fields as $field ) {
 		$type = $field['type'] ?? 'text';
-		$raw  = get_post_meta( $post_id, '_dzuvo_' . $field['key'], true );
+		$raw  = dzuvo_home_meta( $post_id, $field['key'] );
 
 		if ( 'checkbox' === $type ) {
-			if ( '1' === $raw ) {
+			// ACF range une case cochée sous « 1 », décochée sous « 0 ».
+			if ( '1' === (string) $raw ) {
 				$values[ $field['key'] ] = true;
 			}
 			continue;
 		}
 
-		if ( '' === $raw || null === $raw ) {
+		$clean = dzuvo_home_sanitize_field( $raw, $field );
+
+		if ( '' === $clean ) {
 			continue;
 		}
 
-		$values[ $field['key'] ] = 'number' === $type ? 0 + $raw : $raw;
+		$values[ $field['key'] ] = 'number' === $type ? 0 + $clean : $clean;
 	}
 
 	return $values;

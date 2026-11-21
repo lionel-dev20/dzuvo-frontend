@@ -146,6 +146,11 @@
  * l'élément, seul le resserrement la fait lire comme un relief.
  */
 :root {
+  /* Largeur maximale du contenu : 1280px, la mesure courante des grands sites
+     marchands au Canada (Walmart, Canadian Tire, Best Buy). Au-delà, le contenu
+     se centre au lieu de s'étirer ; les fonds, eux, restent pleine largeur. */
+  --page-max: 80rem;
+
   --shadow-panel: 0 10px 24px rgb(0 0 0 / 0.28);
   --shadow-menu: 0 14px 34px rgb(0 0 0 / 0.3);
   --shadow-bar: 0 3px 12px rgb(0 0 0 / 0.22);

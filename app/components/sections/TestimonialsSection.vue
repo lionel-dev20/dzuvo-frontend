@@ -37,7 +37,7 @@ const mask = 'overflow-hidden [mask-image:linear-gradient(to_right,transparent,b
 </script>
 
 <template>
-  <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="Témoignages clients">
+  <section ref="root" class="px-page" aria-label="Témoignages clients">
     <div data-reveal-group>
       <div data-reveal class="mx-auto mb-10 max-w-2xl text-center">
         <h2 class="text-h2 leading-tight font-bold text-balance lg:text-h2-lg">

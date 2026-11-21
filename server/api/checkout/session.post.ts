@@ -137,7 +137,20 @@ export default defineEventHandler(async (event) => {
   const shippingAddress = toWooAddress(address, true)
 
   const order = await createOrder({
-    lineItems: lines.map(line => ({ product_id: line.id, quantity: line.quantity })),
+    /*
+     * Une ligne remisée par une offre de quantité envoie son total : sans lui,
+     * WooCommerce recalculerait le prix catalogue, et le client paierait plus
+     * que le montant annoncé dans le panier. Les autres lignes ne changent pas.
+     * `subtotal` suit `total` pour qu'un code avantage s'applique sur le prix
+     * déjà remisé, comme dans le panier.
+     */
+    lineItems: lines.map(line => ({
+      product_id: line.id,
+      quantity: line.quantity,
+      ...(line.offerPercent
+        ? { subtotal: line.lineTotal.toFixed(2), total: line.lineTotal.toFixed(2) }
+        : {}),
+    })),
     couponCode: body?.coupon?.trim() || undefined,
     customerId: user?.id,
     billing: toWooAddress(body?.billing ?? address),

@@ -1,6 +1,7 @@
 import type { CatalogProduct } from '#shared/types/catalog'
 import type { CartIssue, CartItem, CartLine, CartState } from '#shared/types/cart'
 import { formatPrice, roundMoney } from '#shared/utils/format'
+import { priceLine } from '#shared/utils/offers'
 import type { WooCoupon } from './woocommerce'
 
 /**
@@ -59,6 +60,10 @@ export function buildLines(items: CartItem[], products: CatalogProduct[]) {
       issues.push({ id: item.id, name: product.name, reason: 'quantity-adjusted', quantity })
     }
 
+    // Offre de quantité : le prix de la ligne se décide ici, jamais côté
+    // navigateur. La même fonction sert la fiche produit pour l'afficher.
+    const priced = priceLine(product.price, quantity, product.quantityOffers)
+
     lines.push({
       id: product.id,
       slug: product.slug,
@@ -69,7 +74,8 @@ export function buildLines(items: CartItem[], products: CatalogProduct[]) {
       regularPrice: product.regularPrice,
       quantity,
       maxQuantity: product.stockQuantity,
-      lineTotal: roundMoney(product.price * quantity),
+      lineTotal: priced.total,
+      ...(priced.percent ? { offerPercent: priced.percent, offerSavings: priced.saving } : {}),
       inStock: true,
     })
   }
@@ -81,11 +87,18 @@ export function subtotalOf(lines: CartLine[]) {
   return roundMoney(lines.reduce((sum, line) => sum + line.lineTotal, 0))
 }
 
-/** Économie déjà acquise grâce aux promotions produit, hors code avantage. */
+/**
+ * Économie déjà acquise, hors code avantage : promotions produit, plus offres
+ * de quantité. Les deux se cumulent — la promotion baisse le prix unitaire,
+ * l'offre se calcule ensuite sur ce prix.
+ */
 export function savingsOf(lines: CartLine[]) {
   return roundMoney(
     lines.reduce(
-      (sum, line) => sum + (line.regularPrice ? (line.regularPrice - line.price) * line.quantity : 0),
+      (sum, line) =>
+        sum
+        + (line.regularPrice ? (line.regularPrice - line.price) * line.quantity : 0)
+        + (line.offerSavings ?? 0),
       0,
     ),
   )

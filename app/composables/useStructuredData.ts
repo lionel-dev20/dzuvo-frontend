@@ -77,3 +77,57 @@ function useJsonLd(data: Record<string, unknown>) {
     script: [{ type: 'application/ld+json', innerHTML: json }],
   })
 }
+
+/**
+ * Fiche produit (schema.org/Product) : prix, disponibilité, et — quand il y en
+ * a — note moyenne et avis. C'est ce qui fait apparaître étoiles et prix dans
+ * les résultats de recherche.
+ *
+ * Les avis ne sont publiés que s'ils existent : une note inventée ou à zéro
+ * serait refusée par les moteurs, voire pénalisée.
+ */
+export function useProductSchema(
+  product: import('#shared/types/catalog').CatalogProduct,
+  reviews: import('#shared/types/reviews').ReviewsResult | null,
+) {
+  const hasReviews = Boolean(reviews?.items.length)
+  const count = hasReviews ? reviews!.total : product.reviews
+  const average = hasReviews ? reviews!.average : product.rating
+
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    'name': product.name,
+    'description': product.excerpt || product.description || undefined,
+    'sku': product.sku || undefined,
+    'image': product.images.map(image => image.src),
+    'brand': { '@type': 'Brand', 'name': siteConfig.name },
+    'offers': {
+      '@type': 'Offer',
+      'price': product.price.toFixed(2),
+      'priceCurrency': 'CAD',
+      'availability': product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      ...(siteConfig.url ? { url: `${siteConfig.url}/produits/${product.slug}` } : {}),
+    },
+    ...(count > 0 && average > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            'ratingValue': average.toFixed(1),
+            'reviewCount': count,
+          },
+        }
+      : {}),
+    ...(hasReviews
+      ? {
+          review: reviews!.items.slice(0, 5).map(review => ({
+            '@type': 'Review',
+            'author': { '@type': 'Person', 'name': review.author },
+            'datePublished': review.date || undefined,
+            'reviewBody': review.content,
+            'reviewRating': { '@type': 'Rating', 'ratingValue': review.rating, 'bestRating': 5 },
+          })),
+        }
+      : {}),
+  })
+}

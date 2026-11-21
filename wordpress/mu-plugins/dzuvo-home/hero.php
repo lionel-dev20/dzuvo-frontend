@@ -47,6 +47,9 @@ function dzuvo_home_slide_fields() {
 			'label'   => 'Période d’affichage',
 			'type'    => 'select',
 			'options' => dzuvo_home_slide_seasons(),
+			// Une nouvelle slide ne doit pas devenir « de marque » par défaut :
+			// c'est la première option de la liste, pas la plus courante.
+			'default' => 'always',
 			'help'    => 'Une seule slide doit porter « Slide de marque » : c’est elle qui contient le titre principal de la page, celui que lisent les moteurs de recherche.',
 		],
 		[
@@ -80,11 +83,11 @@ add_action( 'init', function () {
 	dzuvo_home_register_type( DZUVO_SLIDE_TYPE, 'Slide', 'Carrousel principal' );
 } );
 
-dzuvo_home_add_meta_box(
-	DZUVO_SLIDE_TYPE,
-	'dzuvo_slide_details',
+dzuvo_home_add_field_group(
+	'slide',
 	'Contenu de la slide',
-	dzuvo_home_slide_fields()
+	dzuvo_home_slide_fields(),
+	dzuvo_home_location_post_type( DZUVO_SLIDE_TYPE )
 );
 
 /**
@@ -109,12 +112,12 @@ add_action( 'manage_' . DZUVO_SLIDE_TYPE . '_posts_custom_column', function ( $c
 	}
 
 	if ( 'eyebrow' === $column ) {
-		echo esc_html( get_post_meta( $post_id, '_dzuvo_eyebrow', true ) ?: '—' );
+		echo esc_html( dzuvo_home_meta( $post_id, 'eyebrow' ) ?: '—' );
 	}
 
 	if ( 'season' === $column ) {
 		$seasons = dzuvo_home_slide_seasons();
-		$value   = get_post_meta( $post_id, '_dzuvo_season', true );
+		$value   = dzuvo_home_meta( $post_id, 'season' );
 		echo esc_html( $seasons[ $value ] ?? 'Toute l’année' );
 	}
 }, 10, 2 );

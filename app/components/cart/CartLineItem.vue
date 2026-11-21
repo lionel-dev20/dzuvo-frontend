@@ -56,7 +56,12 @@ const stepper = 'grid size-9 place-items-center text-tertiary-500 transition-col
         </NuxtLink>
         <p v-if="line.sku" class="mt-1 text-[11px] text-tertiary-800">Réf. {{ line.sku }}</p>
         <p v-if="line.quantity > 1" class="mt-1 text-[11px] text-tertiary-800">
-          {{ formatPrice(line.price) }} l’unité
+          {{ formatPrice(line.offerPercent ? line.lineTotal / line.quantity : line.price) }} l’unité
+        </p>
+        <!-- Offre de quantité : le total ci-contre est déjà remisé, on le dit. -->
+        <p v-if="line.offerPercent" class="mt-1 text-[11px] font-bold text-secondary">
+          Offre {{ line.quantity }} articles : -{{ String(line.offerPercent).replace('.', ',') }} %
+          <template v-if="line.offerSavings">(vous économisez {{ formatPrice(line.offerSavings) }})</template>
         </p>
       </div>
 

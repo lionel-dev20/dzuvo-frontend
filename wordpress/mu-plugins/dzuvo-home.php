@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  DZUVO — contenu de la page d'accueil
  * Description:  Rend la page d'accueil du site Nuxt modifiable depuis WordPress, section par section.
- * Version:      1.0.0
+ * Version:      2.0.0
  * Author:       DZUVO
  *
  * WordPress ne charge automatiquement que les fichiers PHP posés à la racine
@@ -11,6 +11,11 @@
  *
  * Tout est servi au front par une seule route publique :
  *   GET /wp-json/dzuvo/v1/home
+ *
+ * La saisie passe par ACF (la version gratuite suffit) : les listes sont des
+ * types de contenu portant chacun un groupe de champs, les textes fixes et la
+ * sélection de produits se règlent sur la page d'accueil WordPress. La
+ * lecture, elle, ne dépend pas d'ACF : voir fields.php.
  *
  * Rien n'est imposé au site : une section vide côté WordPress laisse le front
  * afficher le contenu livré avec le code. La page d'accueil ne peut donc pas
@@ -21,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DZUVO_HOME_VERSION', '1.0.0' );
+define( 'DZUVO_HOME_VERSION', '2.0.0' );
 define( 'DZUVO_HOME_DIR', __DIR__ . '/dzuvo-home' );
 
 /*
@@ -37,6 +42,7 @@ foreach ( [
 	'testimonials.php',
 	'products.php',
 	'settings.php',
+	'migrate.php',
 	'rest.php',
 ] as $part ) {
 	require_once DZUVO_HOME_DIR . '/' . $part;
@@ -64,8 +70,55 @@ add_action( 'admin_menu', function () {
 	add_submenu_page( 'dzuvo-home', 'Vue d’ensemble', 'Vue d’ensemble', 'edit_posts', 'dzuvo-home', 'dzuvo_home_render_overview' );
 } );
 
+/**
+ * Entrée du sous-menu vers la page d'accueil WordPress, où se règlent les
+ * textes fixes et les produits. Sans page identifiée, il n'y a rien à ouvrir.
+ */
+add_action( 'admin_menu', function () {
+	$page_id = dzuvo_home_page_id();
+
+	if ( $page_id ) {
+		add_submenu_page( 'dzuvo-home', 'Titres, textes et produits', 'Titres, textes et produits', 'edit_posts', 'post.php?post=' . $page_id . '&action=edit' );
+	}
+} );
+
+/**
+ * Ce qui empêche la saisie, dit là où on la cherche : sur l'écran d'ensemble
+ * et sur les listes. Sans cela, l'absence d'ACF ou de page se traduirait par
+ * des écrans vides, sans explication.
+ */
+add_action( 'admin_notices', function () {
+	$screen = get_current_screen();
+
+	if ( ! $screen ) {
+		return;
+	}
+
+	$ours = 'toplevel_page_dzuvo-home' === $screen->id || in_array( $screen->post_type, dzuvo_home_sortable_types(), true );
+
+	if ( ! $ours ) {
+		return;
+	}
+
+	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
+		echo '<div class="notice notice-error"><p><strong>ACF n’est pas actif.</strong> Installez et activez « Advanced Custom Fields » (la version gratuite suffit) : sans lui, les champs de saisie n’apparaissent pas. Le contenu déjà saisi continue d’être servi au site.</p></div>';
+		return;
+	}
+
+	if ( ! dzuvo_home_page_id() ) {
+		printf(
+			'<div class="notice notice-warning"><p><strong>Aucune page d’accueil WordPress trouvée.</strong> Les titres, textes et produits se saisissent sur cette page. Choisissez-la dans <a href="%s">Réglages &gt; Lecture</a> (« Une page statique »), ou créez une page dont l’adresse est « accueil ».</p></div>',
+			esc_url( admin_url( 'options-reading.php' ) )
+		);
+	}
+} );
+
 /** Écran d'accueil du plugin : ce qui est publié, et où le modifier. */
 function dzuvo_home_render_overview() {
+	$page_id   = dzuvo_home_page_id();
+	$page_url  = $page_id ? get_edit_post_link( $page_id, 'raw' ) : admin_url( 'options-reading.php' );
+	$page_verb = $page_id ? 'Modifier' : 'Choisir la page d’accueil';
+
 	$sections = [
 		[
 			'title' => 'Carrousel principal',
@@ -105,16 +158,18 @@ function dzuvo_home_render_overview() {
 		[
 			'title' => 'Produits mis en avant',
 			'text'  => 'La sélection du carrousel. Les prix, les promotions et le stock sont lus dans WooCommerce : ils ne se saisissent pas ici.',
-			'url'   => admin_url( 'admin.php?page=dzuvo-home-products' ),
+			'url'   => $page_url,
 			'count' => count( dzuvo_home_selected_product_ids() ),
+			'verb'  => $page_verb,
 			'label' => 'produits sélectionnés',
 		],
 		[
 			'title' => 'Titres et textes des sections',
 			'text'  => 'Les intitulés fixes : vidéo, engagements, recherche de pièce, carte de livraison.',
-			'url'   => admin_url( 'admin.php?page=dzuvo-home-settings' ),
+			'url'   => $page_url,
 			'count' => null,
 			'label' => '',
+			'verb'  => $page_verb,
 		],
 	];
 	?>
@@ -134,7 +189,7 @@ function dzuvo_home_render_overview() {
 					<?php if ( null !== $section['count'] ) : ?>
 						<p><strong><?php echo (int) $section['count']; ?></strong> <?php echo esc_html( $section['label'] ); ?></p>
 					<?php endif; ?>
-					<a class="button button-primary" href="<?php echo esc_url( $section['url'] ); ?>">Modifier</a>
+					<a class="button button-primary" href="<?php echo esc_url( $section['url'] ); ?>"><?php echo esc_html( $section['verb'] ?? 'Modifier' ); ?></a>
 				</div>
 			<?php endforeach; ?>
 		</div>
@@ -145,9 +200,8 @@ function dzuvo_home_render_overview() {
 			<code><a href="<?php echo esc_url( rest_url( 'dzuvo/v1/home' ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( rest_url( 'dzuvo/v1/home' ) ); ?></a></code>
 		</p>
 		<p class="description">
-			Le site garde ce contenu en mémoire cinq minutes : une modification peut mettre
-			ce délai à apparaître en ligne. La page d’accueil étant pré-générée au moment du
-			déploiement, elle demande en plus une reconstruction du site pour se figer à jour.
+			Le site garde ce contenu en mémoire cinq minutes, mais WordPress le prévient à
+			chaque enregistrement : une modification apparaît en ligne en quelques secondes.
 		</p>
 	</div>
 	<?php

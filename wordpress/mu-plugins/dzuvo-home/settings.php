@@ -4,8 +4,9 @@
  *
  * Ce qui n'est pas une liste — un titre de section, une accroche, les trois
  * engagements — n'a pas besoin d'un type de contenu à lui : ce serait quatre
- * clics pour changer trois mots. Tout tient donc sur un écran, dans l'ordre où
- * les sections apparaissent sur le site.
+ * clics pour changer trois mots. Tout tient donc sur un seul écran : la page
+ * d'accueil WordPress, avec un onglet par section, dans l'ordre où elles
+ * apparaissent sur le site.
  *
  * Un champ laissé vide n'efface rien : le site garde le texte livré avec lui.
  * C'est ce qui permet de ne remplir que ce qu'on veut changer.
@@ -15,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/** Ancien emplacement des réglages (avant ACF) : lu une seule fois, par la migration. */
 const DZUVO_SETTINGS_OPTION = 'dzuvo_home_settings';
 
 /**
@@ -103,15 +105,23 @@ function dzuvo_home_settings_fields() {
 	return $fields;
 }
 
-/** Valeurs enregistrées, les champs vides écartés. */
+/**
+ * Valeurs saisies sur la page d'accueil, les champs vides écartés.
+ *
+ * Sans page d'accueil identifiée, rien n'est servi : le site garde ses textes.
+ */
 function dzuvo_home_settings() {
-	$stored = (array) get_option( DZUVO_SETTINGS_OPTION, [] );
-	$out    = [];
+	$page_id = dzuvo_home_page_id();
+	$out     = [];
+
+	if ( ! $page_id ) {
+		return $out;
+	}
 
 	foreach ( dzuvo_home_settings_fields() as $field ) {
-		$value = $stored[ $field['key'] ] ?? '';
+		$value = dzuvo_home_sanitize_field( dzuvo_home_meta( $page_id, $field['key'] ), $field );
 
-		if ( '' === $value || null === $value ) {
+		if ( '' === $value ) {
 			continue;
 		}
 
@@ -121,117 +131,51 @@ function dzuvo_home_settings() {
 	return $out;
 }
 
-add_action( 'admin_menu', function () {
-	add_submenu_page(
-		'dzuvo-home',
-		'Titres et textes',
-		'Titres et textes',
-		'edit_posts',
-		'dzuvo-home-settings',
-		'dzuvo_home_render_settings_page'
-	);
-} );
+/**
+ * Le schéma devient un groupe ACF à onglets : un onglet par section du site,
+ * précédé de son texte d'introduction.
+ */
+function dzuvo_home_settings_acf_fields() {
+	$acf = [];
 
-function dzuvo_home_render_settings_page() {
-	if ( ! current_user_can( 'edit_posts' ) ) {
-		wp_die( 'Droits insuffisants.' );
+	foreach ( dzuvo_home_settings_schema() as $index => $group ) {
+		$acf[] = [
+			'acf' => [
+				'key'       => dzuvo_home_acf_key( 'settings', 'tab' . $index ),
+				'label'     => $group['title'],
+				'name'      => '',
+				'type'      => 'tab',
+				'placement' => 'top',
+				'endpoint'  => 0,
+			],
+		];
+
+		if ( ! empty( $group['intro'] ) ) {
+			$acf[] = [
+				'acf' => [
+					'key'       => dzuvo_home_acf_key( 'settings', 'intro' . $index ),
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => ( $group['intro'] ?? '' ) . ' Un champ vide n’efface rien : le site garde alors son texte.',
+					'new_lines' => '',
+					'esc_html'  => 1,
+				],
+			];
+		}
+
+		foreach ( $group['fields'] as $field ) {
+			$acf[] = $field;
+		}
 	}
 
-	$stored = (array) get_option( DZUVO_SETTINGS_OPTION, [] );
-	?>
-	<div class="wrap">
-		<h1>Titres et textes des sections</h1>
-
-		<?php if ( isset( $_GET['enregistre'] ) ) : ?>
-			<div class="notice notice-success is-dismissible"><p>Modifications enregistrées.</p></div>
-		<?php endif; ?>
-
-		<p style="max-width:46rem">
-			Les champs sont dans l’ordre des sections de la page d’accueil.
-			<strong>Un champ vide n’efface rien</strong> : le site conserve alors le texte livré
-			avec lui. Ne remplissez donc que ce que vous voulez changer — le texte gris de
-			chaque champ montre ce qui s’affiche aujourd’hui.
-		</p>
-
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="dzuvo_home_save_settings">
-			<?php wp_nonce_field( 'dzuvo_home_save_settings' ); ?>
-
-			<?php foreach ( dzuvo_home_settings_schema() as $group ) : ?>
-				<h2><?php echo esc_html( $group['title'] ); ?></h2>
-				<?php if ( ! empty( $group['intro'] ) ) : ?>
-					<p class="description" style="max-width:46rem"><?php echo esc_html( $group['intro'] ); ?></p>
-				<?php endif; ?>
-
-				<table class="form-table" role="presentation">
-					<?php foreach ( $group['fields'] as $field ) : ?>
-						<?php
-						$key   = $field['key'];
-						$type  = $field['type'] ?? 'text';
-						$value = $stored[ $key ] ?? '';
-						$id    = 'dzuvo-setting-' . $key;
-						?>
-						<tr>
-							<th scope="row"><label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $field['label'] ); ?></label></th>
-							<td>
-								<?php if ( 'textarea' === $type ) : ?>
-									<textarea
-										id="<?php echo esc_attr( $id ); ?>"
-										name="<?php echo esc_attr( $key ); ?>"
-										rows="3"
-										class="large-text"
-										placeholder="<?php echo esc_attr( $field['placeholder'] ?? '' ); ?>"
-									><?php echo esc_textarea( $value ); ?></textarea>
-								<?php elseif ( 'number' === $type ) : ?>
-									<input
-										type="number"
-										id="<?php echo esc_attr( $id ); ?>"
-										name="<?php echo esc_attr( $key ); ?>"
-										value="<?php echo esc_attr( $value ); ?>"
-										class="small-text"
-									>
-								<?php else : ?>
-									<input
-										type="text"
-										id="<?php echo esc_attr( $id ); ?>"
-										name="<?php echo esc_attr( $key ); ?>"
-										value="<?php echo esc_attr( $value ); ?>"
-										class="large-text"
-										placeholder="<?php echo esc_attr( $field['placeholder'] ?? '' ); ?>"
-									>
-								<?php endif; ?>
-
-								<?php if ( ! empty( $field['help'] ) ) : ?>
-									<p class="description"><?php echo esc_html( $field['help'] ); ?></p>
-								<?php endif; ?>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			<?php endforeach; ?>
-
-			<?php submit_button( 'Enregistrer' ); ?>
-		</form>
-	</div>
-	<?php
+	return $acf;
 }
 
-add_action( 'admin_post_dzuvo_home_save_settings', function () {
-	check_admin_referer( 'dzuvo_home_save_settings' );
-
-	if ( ! current_user_can( 'edit_posts' ) ) {
-		wp_die( 'Droits insuffisants.' );
-	}
-
-	$values = [];
-
-	foreach ( dzuvo_home_settings_fields() as $field ) {
-		$raw = $_POST[ $field['key'] ] ?? '';
-		$values[ $field['key'] ] = dzuvo_home_sanitize_field( $raw, $field );
-	}
-
-	update_option( DZUVO_SETTINGS_OPTION, $values );
-
-	wp_safe_redirect( add_query_arg( 'enregistre', '1', admin_url( 'admin.php?page=dzuvo-home-settings' ) ) );
-	exit;
-} );
+dzuvo_home_add_field_group(
+	'settings',
+	'Titres et textes des sections',
+	dzuvo_home_settings_acf_fields(),
+	'dzuvo_home_location_home_page',
+	10
+);
