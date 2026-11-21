@@ -55,7 +55,7 @@ const copies = (quantity: number) => Math.min(quantity, MAX_VISIBLE)
       <label
         v-for="tier in tiers"
         :key="tier.quantity"
-        class="relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-primary p-3 transition-colors focus-within:ring-2 focus-within:ring-secondary sm:gap-4 sm:p-4"
+        class="relative flex cursor-pointer items-center gap-3 rounded-2xl border bg-primary p-3 transition-colors focus-within:ring-2 focus-within:ring-secondary sm:gap-4 sm:p-4"
         :class="current === tier.quantity ? 'border-secondary' : 'border-tertiary-500/15 hover:border-tertiary-500/40'"
       >
         <input
@@ -69,16 +69,21 @@ const copies = (quantity: number) => Math.min(quantity, MAX_VISIBLE)
 
         <!-- Pastille de sélection -->
         <span
-          class="mt-3 grid size-5 shrink-0 place-items-center rounded-full border-2 sm:mt-[18px]"
+          class="grid size-5 shrink-0 place-items-center rounded-full border-2"
           :class="current === tier.quantity ? 'border-secondary' : 'border-tertiary-500/30'"
           aria-hidden="true"
         >
           <span v-if="current === tier.quantity" class="size-2.5 rounded-full bg-secondary" />
         </span>
 
-        <span class="min-w-0 flex-1">
+        <!--
+          Images et texte sur une même ligne. Quand la carte est trop étroite
+          (téléphone, trois images), le texte passe de lui-même dessous plutôt
+          que d'être écrasé : `flex-wrap` et une largeur minimale au texte.
+        -->
+        <span class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
           <!-- Le produit, autant de fois que d'articles, séparé par des « + ». -->
-          <span class="flex items-center gap-1.5 sm:gap-2" aria-hidden="true">
+          <span class="flex shrink-0 items-center gap-1.5 sm:gap-2" aria-hidden="true">
             <template v-for="n in copies(tier.quantity)" :key="n">
               <span v-if="n > 1" class="text-lg leading-none font-bold text-tertiary-800">+</span>
               <span class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-tertiary-500/10 bg-primary-darker sm:size-14">
@@ -97,22 +102,24 @@ const copies = (quantity: number) => Math.min(quantity, MAX_VISIBLE)
             <span v-if="tier.quantity > MAX_VISIBLE" class="text-[13px] font-bold text-tertiary-800">× {{ tier.quantity }}</span>
           </span>
 
-          <span class="mt-2 flex flex-wrap items-center gap-2">
-            <span class="font-bold text-tertiary-50">Acheter {{ tier.quantity }}</span>
-            <span
-              v-if="tier.percent"
-              class="rounded bg-secondary px-2 py-0.5 text-[11px] font-bold text-on-accent"
-            >
-              -{{ String(tier.percent).replace('.', ',') }} %
+          <span class="min-w-[9.5rem] flex-1">
+            <span class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-tertiary-50">Acheter {{ tier.quantity }}</span>
+              <span
+                v-if="tier.percent"
+                class="rounded bg-secondary px-2 py-0.5 text-[11px] font-bold text-on-accent"
+              >
+                -{{ String(tier.percent).replace('.', ',') }} %
+              </span>
             </span>
+            <span v-if="tier.saving" class="mt-0.5 block text-[13px] leading-snug text-tertiary-600">
+              Économisez {{ formatPrice(tier.saving) }} · {{ formatPrice(tier.each) }} l’unité
+            </span>
+            <span v-else class="mt-0.5 block text-[13px] text-tertiary-800">Prix actuel</span>
           </span>
-          <span v-if="tier.saving" class="mt-0.5 block text-[13px] leading-snug text-tertiary-600">
-            Économisez {{ formatPrice(tier.saving) }} · {{ formatPrice(tier.each) }} l’unité
-          </span>
-          <span v-else class="mt-0.5 block text-[13px] text-tertiary-800">Prix actuel</span>
         </span>
 
-        <span class="mt-1.5 shrink-0 text-right sm:mt-3.5">
+        <span class="shrink-0 text-right">
           <span v-if="tier.saving" class="block text-[12px] text-tertiary-800 line-through">{{ formatPrice(tier.fullTotal) }}</span>
           <span class="block font-bold text-tertiary-50 tabular-nums">{{ formatPrice(tier.total) }}</span>
         </span>
