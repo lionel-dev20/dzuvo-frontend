@@ -45,7 +45,7 @@ function openForm() {
 </script>
 
 <template>
-  <section id="avis" class="scroll-mt-header" aria-labelledby="avis-titre">
+  <section id="avis" class="scroll-mt-header rounded-2xl bg-primary p-5 sm:p-8" aria-labelledby="avis-titre">
     <h2 id="avis-titre" class="text-h3 font-bold text-tertiary-50">Avis clients</h2>
 
     <div class="mt-6 grid gap-3 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
@@ -80,7 +80,7 @@ function openForm() {
         <!-- Formulaire -->
         <form
           v-if="formOpen && status !== 'success'"
-          class="mb-8 rounded-2xl bg-primary p-6"
+          class="mb-8 rounded-2xl bg-primary-darker p-6"
           novalidate
           @submit.prevent="submit"
         >
@@ -148,7 +148,7 @@ function openForm() {
 
         <p
           v-if="status === 'success'"
-          class="mb-8 rounded-2xl border border-secondary/40 bg-primary p-5 text-body text-tertiary-50"
+          class="mb-8 rounded-2xl border border-secondary/40 bg-primary-darker p-5 text-body text-tertiary-50"
           role="status"
         >
           {{ feedback }}

@@ -109,7 +109,7 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
       </ol>
     </nav>
 
-    <div class="grid items-start gap-3 lg:grid-cols-2 lg:gap-16">
+    <div class="grid items-start gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-16">
       <!-- Visuels : collés pendant la lecture de la colonne d'achat. -->
       <div class="lg:sticky lg:top-[calc(var(--spacing-header)+1.5rem)]">
         <ProductGallery :images="product.images" :badge="product.badge" />
