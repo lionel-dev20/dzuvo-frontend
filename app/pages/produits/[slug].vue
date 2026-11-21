@@ -109,7 +109,7 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
       </ol>
     </nav>
 
-    <div class="grid items-start gap-3 lg:grid-cols-2">
+    <div class="grid items-start gap-3 lg:grid-cols-2 lg:gap-16">
       <!-- Visuels : collés pendant la lecture de la colonne d'achat. -->
       <div class="lg:sticky lg:top-[calc(var(--spacing-header)+1.5rem)]">
         <ProductGallery :images="product.images" :badge="product.badge" />
@@ -125,7 +125,7 @@ const summary = 'cursor-pointer list-none py-4 text-body font-bold text-tertiary
 
         <!-- Note : toujours visible, elle mène aux avis. -->
         <a href="#avis" class="mt-3 inline-flex items-center gap-2 hover:text-secondary">
-          <StarRating v-if="reviewCount" :value="rating" />
+          <StarRating :value="reviewCount ? rating : 0" />
           <span class="text-body text-tertiary-800">
             <template v-if="reviewCount">{{ rating.toFixed(1).replace('.', ',') }} sur 5 · {{ reviewCount }} avis</template>
             <template v-else>Soyez le premier à donner votre avis</template>

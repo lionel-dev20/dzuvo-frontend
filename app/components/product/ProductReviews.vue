@@ -51,14 +51,15 @@ function openForm() {
     <div class="mt-6 grid gap-3 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
       <!-- Note d'ensemble -->
       <div>
-        <div v-if="total" class="flex items-center gap-4">
-          <p class="text-h1 leading-none font-bold text-tertiary-50">{{ average.toFixed(1).replace('.', ',') }}</p>
+        <div class="flex items-center gap-4">
+          <p v-if="total" class="text-h1 leading-none font-bold text-tertiary-50">{{ average.toFixed(1).replace('.', ',') }}</p>
           <div>
-            <StarRating :value="average" :size="20" />
-            <p class="mt-1 text-[13px] text-tertiary-800">{{ total }} avis</p>
+            <StarRating :value="total ? average : 0" :size="20" />
+            <p class="mt-1 text-[13px] text-tertiary-800">
+              {{ total ? `${total} avis` : 'Aucun avis pour le moment. Soyez le premier à donner le vôtre.' }}
+            </p>
           </div>
         </div>
-        <p v-else class="text-body text-tertiary-600">Aucun avis pour le moment. Soyez le premier à donner le vôtre.</p>
 
         <ul v-if="hasList" class="mt-5 grid gap-2">
           <li v-for="row in distribution" :key="row.stars" class="flex items-center gap-3 text-[13px] text-tertiary-800">
@@ -96,7 +97,8 @@ function openForm() {
                 <svg
                   width="30" height="30" viewBox="0 0 20 20"
                   class="transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-secondary"
-                  :class="star <= form.rating ? 'fill-secondary' : 'fill-tertiary-500/20 hover:fill-secondary/50'"
+                  stroke-width="1.4" stroke-linejoin="round"
+                  :class="star <= form.rating ? 'fill-star stroke-star' : 'fill-transparent stroke-star hover:fill-star/30'"
                   aria-hidden="true"
                 >
                   <path d="m10 1.6 2.5 5.4 5.9.7-4.4 4 1.2 5.8-5.2-3-5.2 3 1.2-5.8-4.4-4 5.9-.7z" />
