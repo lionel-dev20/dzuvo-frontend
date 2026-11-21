@@ -29,7 +29,7 @@ useSeo({
 </script>
 
 <template>
-  <div class="px-page pt-10 pb-20">
+  <div class="px-2.5 md:px-5 lg:px-24 pt-10 pb-20">
     <!-- Référence absente ou invalide : on ne laisse pas la page vide. -->
     <div v-if="!order" class="mx-auto max-w-xl py-16 text-center">
       <h1 class="text-h2 font-bold text-tertiary-50">Commande introuvable</h1>

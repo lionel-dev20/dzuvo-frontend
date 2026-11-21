@@ -56,7 +56,7 @@ const commitments = [
 
 <template>
   <footer ref="root" class="mt-16 bg-primary md:mt-20 lg:mt-24">
-    <div data-reveal-group class="px-page py-12">
+    <div data-reveal-group class="px-2.5 md:px-5 lg:px-24 py-12">
       <ul class="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-6">
         <li v-for="item in commitments" :key="item.id" data-reveal>
           <NuxtLink
@@ -124,7 +124,7 @@ const commitments = [
       </ul>
     </div>
 
-    <div class="border-t border-tertiary-500/10 px-page py-10">
+    <div class="border-t border-tertiary-500/10 px-2.5 md:px-5 lg:px-24 py-10">
       <div data-reveal-group class="grid gap-x-8 gap-y-2 lg:grid-cols-4 lg:gap-y-10">
         <!-- Colonnes de liens -->
         <div v-for="column in footerColumns" :key="column.id" data-reveal class="border-b border-tertiary-500/10 lg:border-0">

@@ -29,7 +29,7 @@ const points = computed(() => [
 </script>
 
 <template>
-  <section class="px-page" aria-label="Nos engagements">
+  <section class="px-2.5 md:px-5 lg:px-24" aria-label="Nos engagements">
     <div class="p-6 md:p-8">
       <ul class="grid gap-7 md:grid-cols-3 md:gap-6 lg:gap-12">
         <!-- Sur tablette, trois colonnes côte à côte étranglent le texte :

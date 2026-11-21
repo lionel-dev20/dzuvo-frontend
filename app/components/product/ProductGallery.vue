@@ -12,7 +12,7 @@ const broken = reactive(new Set<number>())
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-3">
     <div class="relative aspect-square overflow-hidden rounded-2xl bg-primary">
       <span
         v-if="badge"

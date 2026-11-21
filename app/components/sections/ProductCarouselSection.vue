@@ -114,7 +114,7 @@ const arrow = 'grid size-11 shrink-0 place-items-center rounded-full bg-tertiary
 <template>
   <section
     ref="root"
-    class="px-page"
+    class="px-2.5 md:px-5 lg:px-24"
     aria-label="Nos produits du moment"
     aria-roledescription="carrousel"
     @mouseenter="paused = true"

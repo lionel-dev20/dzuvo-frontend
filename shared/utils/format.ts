@@ -14,10 +14,15 @@ export function formatCurrency(value: number, currency = 'EUR', locale = 'fr-FR'
 
 /**
  * Prix de la boutique : « 64,99 $ ». Convention canadienne-française, symbole
- * après le montant, deux décimales toujours affichées.
+ * après le montant ; les décimales ne sont omises que pour un montant rond.
  */
 export function formatPrice(value: number): string {
-  return `${value.toFixed(2).replace('.', ',')} $`
+  // Un montant rond s'écrit sans ses zéros : « 20 $ », pas « 20,00 $ ». Dès
+  // qu'il y a des cents, les deux décimales restent : « 19,99 $ », « 17,50 $ ».
+  const cents = Math.round(value * 100) % 100
+  return cents === 0
+    ? `${Math.round(value)} $`
+    : `${value.toFixed(2).replace('.', ',')} $`
 }
 
 /** Arrondi monétaire : évite les 19,999999 999 des additions en virgule flottante. */

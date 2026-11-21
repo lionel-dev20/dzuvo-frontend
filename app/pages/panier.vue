@@ -70,7 +70,7 @@ useSeo({
 </script>
 
 <template>
-  <div class="px-page pt-10 pb-20">
+  <div class="px-2.5 md:px-5 lg:px-24 pt-10 pb-20">
     <CartEmpty v-if="isEmpty" />
 
     <template v-else>

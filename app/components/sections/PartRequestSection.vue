@@ -47,7 +47,7 @@ const shortcuts = computed(() => [
 </script>
 
 <template>
-  <section ref="root" class="px-page" aria-label="Rechercher une pièce">
+  <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="Rechercher une pièce">
     <div data-reveal-group class="grid gap-4 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
       <!-- Bloc formulaire -->
       <div data-reveal class="rounded-lg bg-primary bg-opacity-2 border border-gray-900 p-6 md:p-8">

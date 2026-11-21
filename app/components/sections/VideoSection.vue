@@ -78,7 +78,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section ref="root" class="px-page" aria-label="DZUVO en vidéo">
+  <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-label="DZUVO en vidéo">
     <div
       ref="frame"
       class="relative aspect-video w-full origin-center overflow-hidden rounded-2xl bg-primary will-change-transform"

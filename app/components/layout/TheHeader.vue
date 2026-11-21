@@ -126,7 +126,7 @@ onMounted(() => {
   >
     <!-- Barre compacte : marge annulée, logo réduit. -->
     <div
-      class="flex items-center gap-2.5 px-page transition-[padding,margin] duration-300 md:gap-5"
+      class="flex items-center gap-2.5 px-2.5 md:px-5 lg:px-24 transition-[padding,margin] duration-300 md:gap-5"
       :class="compact ? 'mt-0 py-3' : 'mt-2.5 py-3 md:mt-4 lg:mt-6'"
     >
       <!-- Le logo ramène à l'accueil du site : `/`. -->
