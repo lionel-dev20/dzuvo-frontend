@@ -7,11 +7,11 @@
 const root = useTemplateRef<HTMLElement>('root')
 useReveal(root)
 
-const banners = [
+const fallback = [
   {
     id: 'produits',
     kicker: 'Particuliers',
-    title: 'Tout pour votre auto, au petit prix',
+    title: 'Tout pour votre quotidien, au petit prix',
     to: '/categories',
     cta: 'Voir le catalogue',
     image: '/images/bannieres/imgdzuvo7.jpeg',
@@ -25,6 +25,22 @@ const banners = [
     image: '/images/bannieres/imgdzuvo8.jpeg',
   },
 ]
+
+/*
+ * Bannières saisies dans WordPress (« Bannières d'accès ») : surtitre, titre,
+ * bouton, lien et image. Une bannière sans titre n'affiche que son bouton.
+ */
+const { content } = useHomeContent()
+const banners = computed(() => content.value.banners.length
+  ? content.value.banners.map(b => ({
+      id: b.id,
+      kicker: b.kicker ?? '',
+      title: b.headline ?? '',
+      to: b.to,
+      cta: b.label,
+      image: b.image,
+    }))
+  : fallback)
 
 const broken = reactive(new Set<string>())
 </script>
@@ -50,9 +66,9 @@ const broken = reactive(new Set<string>())
           <div class="absolute inset-0 -z-10 bg-black/45 transition-colors duration-300 group-hover:bg-black/35" />
 
           <div>
-            <p class="mb-2 text-xs font-bold tracking-[0.2em] text-white/80 uppercase">{{ banner.kicker }}</p>
-            <h2 class="max-w-sm text-h2 leading-tight font-bold text-balance text-white">{{ banner.title }}</h2>
-            <span class="mt-5 inline-flex items-center gap-2 rounded-btn bg-white px-4.5 py-2.5 text-sm font-bold text-[#14141a] transition-colors group-hover:bg-secondary group-hover:text-white">
+            <p v-if="banner.kicker" class="mb-2 text-xs font-bold tracking-[0.2em] text-white/80 uppercase">{{ banner.kicker }}</p>
+            <h2 v-if="banner.title" class="max-w-sm text-h2 leading-tight font-bold text-balance text-white">{{ banner.title }}</h2>
+            <span class="inline-flex items-center gap-2 rounded-btn bg-white px-4.5 py-2.5 text-sm font-bold text-[#14141a] transition-colors group-hover:bg-secondary group-hover:text-white" :class="banner.title ? 'mt-5' : ''">
               {{ banner.cta }}
               <svg width="15" height="11" viewBox="0 0 17 12" fill="none" aria-hidden="true">
                 <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />

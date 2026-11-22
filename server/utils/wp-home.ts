@@ -9,6 +9,7 @@ import type {
   WpHomePayload,
 } from '#shared/types/home'
 import type { NavItem } from '#shared/types/navigation'
+import { HOME_TEXT_KEYS } from '#shared/utils/homeKeys'
 import { noCache } from './wp-menu'
 import { wooConfig } from './woocommerce'
 
@@ -54,6 +55,8 @@ export async function fetchWpHome(): Promise<WpHomePayload | null> {
     },
     settings: settings(raw.settings),
     productIds: productIds(raw.productIds),
+    featuredProductId: productIds([raw.featuredProductId])[0] ?? 0,
+    bundleProductIds: productIds(raw.bundleProductIds),
   }
 }
 
@@ -155,13 +158,17 @@ function banner(raw: Record<string, unknown>): HomeBanner | null {
   const label = text(raw.label)
   if (!image || !label) return null
 
-  return {
+  const result: HomeBanner = {
     id: text(raw.id) || label,
     label,
     to: text(raw.to) || '/',
     image,
     alt: text(raw.alt) || label,
   }
+
+  optional(result, 'kicker', raw.kicker)
+  optional(result, 'headline', raw.headline)
+  return result
 }
 
 function testimonial(raw: Record<string, unknown>): HomeTestimonial | null {
@@ -219,6 +226,7 @@ function settings(raw: unknown): HomeSettings {
     'offersTitle', 'productsTitle',
     'mapTitleTop', 'mapTitleBottom', 'mapCounterTitle', 'mapCounterText',
     'testimonialsTitleTop', 'testimonialsTitleBottom', 'testimonialsIntro',
+    ...HOME_TEXT_KEYS,
   ]
 
   for (const key of strings) {
@@ -228,6 +236,9 @@ function settings(raw: unknown): HomeSettings {
 
   const counter = Math.trunc(number(source.mapCounterValue, 0))
   if (counter > 0) result.mapCounterValue = counter
+
+  const loop = Math.trunc(number(source.heroLoopSeconds, 0))
+  if (loop >= 2 && loop <= 60) result.heroLoopSeconds = loop
 
   return result
 }

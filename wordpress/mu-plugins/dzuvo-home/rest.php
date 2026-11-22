@@ -50,6 +50,8 @@ function dzuvo_home_rest_response() {
 	$spotlights   = dzuvo_home_spotlights();
 	$banners      = dzuvo_home_banners();
 	$product_ids  = dzuvo_home_product_ids();
+	$featured_id  = dzuvo_home_featured_product_id();
+	$bundle_ids   = dzuvo_home_bundle_product_ids();
 	$testimonials = dzuvo_home_testimonials();
 	$settings     = dzuvo_home_settings();
 
@@ -59,6 +61,8 @@ function dzuvo_home_rest_response() {
 		'spotlights'   => $spotlights,
 		'banners'      => $banners,
 		'productIds'   => $product_ids,
+		'featuredProductId' => $featured_id,
+		'bundleProductIds'  => $bundle_ids,
 		'testimonials' => $testimonials,
 		// Forcé en objet : un tableau PHP vide se sérialise en `[]`, et le site
 		// attend ici un dictionnaire de clés, pas une liste.
@@ -74,6 +78,8 @@ function dzuvo_home_rest_response() {
 			'spotlights'   => count( $spotlights ),
 			'banners'      => count( $banners ),
 			'products'     => count( $product_ids ),
+			'featured'     => $featured_id ? 1 : 0,
+			'bundle'       => count( $bundle_ids ),
 			'testimonials' => count( $testimonials['top'] ) + count( $testimonials['bottom'] ),
 			'settings'     => count( $settings ),
 		],

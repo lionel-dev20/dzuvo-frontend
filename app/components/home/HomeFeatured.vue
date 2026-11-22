@@ -7,13 +7,13 @@ import { priceLine } from '#shared/utils/offers'
  * Produit mis en avant : prix barré, remise, et offres de quantité si la fiche
  * en porte (« Acheter 2, -5 % »).
  *
- * Tout vient de la fiche produit : si WooCommerce répond, ce sont ses valeurs
- * — prix, prix barré, stock, offres — qui s'affichent, et c'est ce produit-là
- * qui part au panier. Sinon (boutique injoignable, développement local), la
- * copie ci-dessous prend le relais et le bouton ouvre la fiche.
+ * Le produit se choisit dans WordPress. Tout vient alors de sa fiche : prix,
+ * prix barré, stock, offres — et c'est ce produit-là qui part au panier.
+ * Sans choix (ou boutique injoignable), la copie ci-dessous prend le relais
+ * et le bouton ouvre la fiche.
  */
 const SLUG = 'pochette-etanche-flottante-pour-telephone-ip68'
-const to = `/produits/${SLUG}`
+const to = computed(() => `/produits/${live.value?.slug ?? SLUG}`)
 
 const UPLOADS = 'https://app.dzuvo.com/wp-content/uploads/2026/11/'
 const suffix = 'Sac-etanche-flottant-IP68-anti-poussiere-en-eponge-pour-telephone-portable'
@@ -34,21 +34,22 @@ const fallback = {
   ],
 }
 
-const { data: live } = useFetch<CatalogProduct>(`/api/catalog/product/${SLUG}`, {
-  key: `home-featured-${SLUG}`,
-  default: () => null,
-})
+// Produit choisi dans WordPress (« Produits de l'accueil »), déjà résolu par le serveur.
+const { content, text } = useHomeContent()
+const live = computed<CatalogProduct | null>(() => content.value.featured)
+const kicker = text('featuredKicker', 'Produit du moment')
+const customText = text('featuredText', '')
 
 const product = computed(() => {
   const p = live.value
   return {
     name: p?.name ?? fallback.name,
-    excerpt: p?.excerpt || fallback.excerpt,
+    excerpt: customText.value || p?.excerpt || fallback.excerpt,
     price: p?.price ?? fallback.price,
     regularPrice: p ? p.regularPrice : fallback.regularPrice,
     inStock: p?.inStock ?? fallback.inStock,
     offers: p ? (p.quantityOffers ?? []) : fallback.quantityOffers,
-    images: p?.images?.length ? p.images : fallback.images,
+    images: p?.images?.length ? p.images : (p ? [] : fallback.images),
   }
 })
 
@@ -69,7 +70,7 @@ const { add } = useCart()
 function buy() {
   const p = live.value
   // Sans fiche réelle, rien de sûr à mettre au panier : la fiche s'en charge.
-  if (!p || !p.inStock || p.variable || p.purchasable === false) return navigateTo(to)
+  if (!p || !p.inStock || p.variable || p.purchasable === false) return navigateTo(to.value)
   add(p, quantity.value)
 }
 </script>
@@ -117,7 +118,7 @@ function buy() {
 
       <!-- Achat -->
       <div>
-        <p data-r class="mb-3 text-xs font-bold tracking-[0.22em] text-secondary uppercase">Produit du moment</p>
+        <p data-r class="mb-3 text-xs font-bold tracking-[0.22em] text-secondary uppercase">{{ kicker }}</p>
         <h2 id="vedette-titre" data-r style="--i: 1" class="text-h2 leading-tight font-bold text-balance text-tertiary-50 lg:text-h2-lg">
           {{ product.name }}
         </h2>

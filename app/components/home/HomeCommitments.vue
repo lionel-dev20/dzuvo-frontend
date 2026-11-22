@@ -9,26 +9,36 @@
 const root = useTemplateRef<HTMLElement>('root')
 useReveal(root)
 
+const { text } = useHomeContent()
+const kicker = text('commitmentsKicker', 'Nos engagements')
+const title = text('commitmentsTitle', 'Acheter sans se poser de questions')
+const lead = text('commitmentsText', 'Des accessoires au petit prix ne devraient pas être un pari. Voici ce qui vous protège à chaque commande.')
+const cta = reactive({ label: text('commitmentsCtaLabel', 'Lire tous nos engagements'), to: text('commitmentsCtaTo', '/engagements') })
+
+/** Quatre lignes : le contenu livré avec le site, surchargeable une à une depuis WordPress. */
 const commitments = [
-  { n: '01', title: 'Livraison et retours gratuits*', text: 'Votre commande arrive chez vous partout au Canada. Elle ne convient pas ? On la reprend.', to: '/livraison' },
-  { n: '02', title: 'Paiement 100 % sécurisé', text: 'Votre carte est saisie chez notre processeur de paiement : le numéro ne passe jamais par ce site.', to: '/paiement' },
-  { n: '03', title: 'Garantie DZUVO 2 ans', text: 'Chaque accessoire est couvert deux ans. Un défaut, et on le remplace.', to: '/garantie' },
-  { n: '04', title: 'Service client au Canada', text: 'Une vraie personne qui répond, ici, dans votre fuseau horaire.', to: '/contact' },
-]
+  { n: '01', title: text('commitment1Title', 'Livraison et retours gratuits*'), text: text('commitment1Text', 'Votre commande arrive chez vous partout au Canada. Elle ne convient pas ? On la reprend.'), to: text('commitment1To', '/livraison') },
+  { n: '02', title: text('commitment2Title', 'Paiement 100 % sécurisé'), text: text('commitment2Text', 'Votre carte est saisie chez notre processeur de paiement : le numéro ne passe jamais par ce site.'), to: text('commitment2To', '/paiement') },
+  { n: '03', title: text('commitment3Title', 'Garantie DZUVO 2 ans'), text: text('commitment3Text', 'Chaque accessoire est couvert deux ans. Un défaut, et on le remplace.'), to: text('commitment3To', '/garantie') },
+  { n: '04', title: text('commitment4Title', 'Service client au Canada'), text: text('commitment4Text', 'Une vraie personne qui répond, ici, dans votre fuseau horaire.'), to: text('commitment4To', '/contact') },
+].map(item => reactive(item))
 </script>
 
 <template>
   <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-labelledby="engagements-titre">
     <div class="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-20">
       <div class="lg:sticky lg:top-[calc(var(--spacing-header)+32px)] lg:self-start">
-        <p data-r class="mb-3 text-xs font-bold tracking-[0.22em] text-secondary uppercase">Nos engagements</p>
+        <p data-r class="mb-3 text-xs font-bold tracking-[0.22em] text-secondary uppercase">{{ kicker }}</p>
         <h2 id="engagements-titre" data-r style="--i: 1" class="text-h2 leading-tight font-bold text-balance text-tertiary-50 lg:text-h2-lg">
-          Acheter sans se poser de questions
+          {{ title }}
         </h2>
         <p data-r style="--i: 2" class="mt-4 max-w-sm text-pretty text-[15px] leading-relaxed text-tertiary-700">
-          Des accessoires au petit prix ne devraient pas être un pari. Voici ce qui vous protège à chaque commande.
+          {{ lead }}
         </p>
-        <NuxtLink data-r style="--i: 3" to="/engagements" class="btn-secondary mt-7">Lire tous nos engagements</NuxtLink>
+        <NuxtLink data-r style="--i: 3" :to="cta.to" class="btn-secondary mt-7">{{ cta.label }}</NuxtLink>
+
+        <!-- Bouclier qui se trace, puis les trois gages qui s'allument. -->
+        <CommitmentsShield data-r style="--i: 4" class="mt-10 hidden lg:block" />
       </div>
 
       <ul class="divide-y divide-tertiary-500/12 border-y border-tertiary-500/12">

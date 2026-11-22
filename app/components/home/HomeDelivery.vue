@@ -15,7 +15,12 @@ useReveal(root)
  * visuel s'y fonde. Tant que le fichier n'existe pas, l'illustration sert de
  * repli — la section n'a jamais d'image cassée.
  */
-const PHOTO = '/images/livraison/livraison.jpg'
+const { text } = useHomeContent()
+const kicker = text('deliveryKicker', 'Livraison')
+const title = text('deliveryTitle', 'Commandé aujourd’hui, à votre porte partout au Canada')
+const lead = text('deliveryText', 'Vos accessoires partent de Saint-Georges, au Québec, et arrivent là où vous habitez : en ville, en région, sur la Côte-Nord ou dans les Prairies.')
+const PHOTO = text('deliveryImage', '/images/livraison/livraison.jpg')
+const cta = reactive({ label: text('deliveryCtaLabel', 'Zones et délais de livraison'), to: text('deliveryCtaTo', '/livraison') })
 const photo = useTemplateRef<HTMLImageElement>('photo')
 const photoFailed = ref(false)
 
@@ -26,9 +31,9 @@ onMounted(() => {
 })
 
 const facts = [
-  { value: 'Partout', label: 'du Québec à la Colombie-Britannique' },
-  { value: 'Gratuit*', label: 'livraison et retours' },
-  { value: '2 ans', label: 'de garantie DZUVO' },
+  reactive({ value: text('deliveryFact1Value', 'Partout'), label: text('deliveryFact1Label', 'du Québec à la Colombie-Britannique') }),
+  reactive({ value: text('deliveryFact2Value', 'Gratuit*'), label: text('deliveryFact2Label', 'livraison et retours') }),
+  reactive({ value: text('deliveryFact3Value', '2 ans'), label: text('deliveryFact3Label', 'de garantie DZUVO') }),
 ]
 </script>
 
@@ -36,22 +41,22 @@ const facts = [
   <section ref="root" class="px-2.5 md:px-5 lg:px-24" aria-labelledby="livraison-titre">
     <div class="grid items-center gap-8 overflow-hidden rounded-3xl bg-primary p-5 shadow-panel md:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-14 lg:p-14">
       <div>
-        <p data-r class="mb-3 text-xs font-bold tracking-[0.22em] text-secondary uppercase">Livraison</p>
+        <p data-r class="mb-3 text-xs font-bold tracking-[0.22em] text-secondary uppercase">{{ kicker }}</p>
         <h2 id="livraison-titre" data-r style="--i: 1" class="text-h2 leading-tight font-bold text-balance text-tertiary-50 lg:text-h2-lg">
-          Commandé aujourd’hui, à votre porte partout au Canada
+          {{ title }}
         </h2>
         <p data-r style="--i: 2" class="mt-4 max-w-md text-pretty text-[15px] leading-relaxed text-tertiary-700">
-          Vos accessoires partent de Saint-Georges, au Québec, et arrivent là où vous habitez : en ville, en région, sur la Côte-Nord ou dans les Prairies.
+          {{ lead }}
         </p>
 
         <dl data-r style="--i: 3" class="mt-8 grid grid-cols-3 gap-4 border-t border-tertiary-500/12 pt-6">
-          <div v-for="fact in facts" :key="fact.value">
+          <div v-for="(fact, index) in facts" :key="index">
             <dt class="text-h3 font-bold text-tertiary-50">{{ fact.value }}</dt>
             <dd class="mt-1 text-[12px] leading-snug text-tertiary-700">{{ fact.label }}</dd>
           </div>
         </dl>
 
-        <NuxtLink data-r style="--i: 4" to="/livraison" class="btn-secondary mt-8">Zones et délais de livraison</NuxtLink>
+        <NuxtLink data-r style="--i: 4" :to="cta.to" class="btn-secondary mt-8">{{ cta.label }}</NuxtLink>
       </div>
 
       <!-- Scène -->
