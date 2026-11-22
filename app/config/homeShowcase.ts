@@ -1,3 +1,5 @@
+import type { CatalogProduct } from '#shared/types/catalog'
+
 /**
  * Produits mis en scène sur l'accueil.
  *
@@ -22,6 +24,8 @@ export interface BundleStep {
   title: string
   pitch: string
   product?: ShowcaseProduct
+  /** Fiche réelle, quand la carte vient de WordPress : elle part telle quelle au panier. */
+  catalog?: CatalogProduct
   /** Rubrique sans produit précis : lien vers la catégorie. */
   category?: { to: string, image: string, note: string, name: string }
 }

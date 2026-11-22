@@ -22,6 +22,8 @@ const EMPTY: HomeContent = {
   spotlights: [],
   banners: [],
   products: [],
+  featured: null,
+  bundle: [],
   testimonials: { top: [], bottom: [] },
   settings: {},
   source: 'indisponible',

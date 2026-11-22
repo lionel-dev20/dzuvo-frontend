@@ -16,11 +16,23 @@ const DZUVO_BANNER_TYPE = 'dzuvo_banner';
 function dzuvo_home_banner_fields() {
 	return [
 		[
+			'key'         => 'kicker',
+			'label'       => 'Surtitre',
+			'type'        => 'text',
+			'placeholder' => 'Particuliers',
+		],
+		[
+			'key'         => 'headline',
+			'label'       => 'Titre',
+			'type'        => 'text',
+			'placeholder' => 'Tout pour votre quotidien, au petit prix',
+		],
+		[
 			'key'         => 'label',
 			'label'       => 'Texte du bouton',
 			'type'        => 'text',
 			'placeholder' => 'Pour les distributeurs',
-			'help'        => 'Posé sur la photo, en bas à droite.',
+			'help'        => 'Posé sur la photo, sous le titre.',
 		],
 		[
 			'key'         => 'to',
@@ -87,6 +99,8 @@ function dzuvo_home_banners() {
 		$out[] = [
 			'id'    => dzuvo_home_slug( $post ),
 			'label' => $values['label'],
+			'kicker'   => $values['kicker'] ?? '',
+			'headline' => $values['headline'] ?? '',
 			'to'    => $values['to'] ?? '/',
 			'image' => $image,
 			'alt'   => $values['alt'] ?? $values['label'],

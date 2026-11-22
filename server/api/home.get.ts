@@ -24,6 +24,8 @@ const EMPTY: HomeContent = {
   spotlights: [],
   banners: [],
   products: [],
+  featured: null,
+  bundle: [],
   testimonials: { top: [], bottom: [] },
   settings: {},
   source: 'indisponible',
@@ -44,9 +46,23 @@ export default defineEventHandler(async (): Promise<HomeContent> => {
       const content = await fetchWpHome()
 
       if (content) {
-        const { productIds, ...sections } = content
+        const { productIds, featuredProductId, bundleProductIds, ...sections } = content
+
+        // Une seule requête WooCommerce pour les trois sélections : les
+        // mêmes produits peuvent figurer dans plusieurs d'entre elles.
+        const wanted = [...new Set([...productIds, featuredProductId, ...bundleProductIds].filter(Boolean))]
+        const resolved = await resolveProducts(wanted)
+        const byId = new Map(resolved.map(product => [product.id, product]))
+        const pick = (ids: number[]) => ids.map(id => byId.get(id)).filter((p): p is CatalogProduct => Boolean(p))
+
         return {
-          value: { ...sections, products: await resolveProducts(productIds), source: 'wordpress' },
+          value: {
+            ...sections,
+            products: pick(productIds),
+            featured: byId.get(featuredProductId) ?? null,
+            bundle: pick(bundleProductIds),
+            source: 'wordpress',
+          },
           isError: false,
         }
       }

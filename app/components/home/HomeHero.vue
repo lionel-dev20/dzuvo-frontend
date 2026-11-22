@@ -11,10 +11,22 @@
  * le bouton pause est donc toujours là. Elle ne démarre pas du tout si le
  * visiteur a demandé moins d'animations.
  */
-const LOOP_SECONDS = 7
 
-const { text } = useHomeContent()
-const videoSrc = text('videoSrc', '/videos/dzuvo-presentation.mp4')
+// Tous les textes se règlent dans WordPress (« Page d'accueil > Accueil — Hero »).
+const { text, count } = useHomeContent()
+const videoSrc = text('heroVideoSrc', '/videos/dzuvo-presentation.mp4')
+const loopSeconds = count('heroLoopSeconds', 7)
+
+const eyebrow = text('heroEyebrow', 'Accessoires du quotidien · Prix justes')
+const title = text('heroTitle', 'Les petits accessoires qui rendent le quotidien plus simple')
+const lead = text('heroText', 'Des accessoires utiles, choisis pour faire le bonheur de ceux qui les utilisent, à des prix qui ne font pas mal. Livrés chez vous partout au Canada.')
+const cta = reactive({ label: text('heroCtaLabel', 'Parcourir le catalogue'), to: text('heroCtaTo', '/categories') })
+const cta2 = reactive({ label: text('heroCta2Label', 'Voir nos favoris'), to: text('heroCta2To', '#favoris') })
+const proofs = [
+  text('heroProof1', 'Livraison partout au Canada'),
+  text('heroProof2', 'Garantie DZUVO 2 ans'),
+  text('heroProof3', 'Compatible toutes marques'),
+]
 
 const root = useTemplateRef<HTMLElement>('root')
 const player = useTemplateRef<HTMLVideoElement>('player')
@@ -27,7 +39,7 @@ let frame = 0
 
 function watchLoop() {
   const video = player.value
-  if (video && video.currentTime >= LOOP_SECONDS) video.currentTime = 0
+  if (video && video.currentTime >= loopSeconds.value) video.currentTime = 0
   frame = requestAnimationFrame(watchLoop)
 }
 
@@ -58,8 +70,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => cancelAnimationFrame(frame))
-
-const proofs = ['Livraison partout au Canada', 'Garantie DZUVO 2 ans', 'Compatible toutes marques']
 </script>
 
 <template>
@@ -81,35 +91,35 @@ const proofs = ['Livraison partout au Canada', 'Garantie DZUVO 2 ans', 'Compatib
 
       <div class="w-full px-5 pt-24 pb-8 text-white md:px-10 md:pb-12 lg:px-14 lg:pb-16">
         <p data-r class="mb-4 text-xs font-bold tracking-[0.22em] text-white/80 uppercase">
-          Accessoires du quotidien · Prix justes
+          {{ eyebrow }}
         </p>
 
         <h1 data-r style="--i: 1" class="max-w-3xl text-h1 leading-[1.08] font-bold text-balance text-white lg:text-hero">
-          Les petits accessoires qui rendent le quotidien plus simple
+          {{ title }}
         </h1>
 
         <p data-r style="--i: 2" class="mt-5 max-w-xl text-lg text-pretty text-white/85">
-          Des accessoires utiles, choisis pour faire le bonheur de ceux qui les utilisent, à des prix qui ne font pas mal. Livrés chez vous partout au Canada.
+          {{ lead }}
         </p>
 
         <div data-r style="--i: 3" class="mt-8 flex flex-wrap gap-3">
-          <NuxtLink to="/categories" class="btn-primary">
-            Parcourir le catalogue
+          <NuxtLink :to="cta.to" class="btn-primary">
+            {{ cta.label }}
             <svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true">
               <path d="M1 6h14m0 0-4.5-4.5M15 6l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </NuxtLink>
-          <a href="#favoris" class="inline-flex items-center rounded-btn border border-white/50 px-4.5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white hover:text-[#14141a]">
-            Voir nos favoris
-          </a>
+          <NuxtLink :to="cta2.to" class="inline-flex items-center rounded-btn border border-white/50 px-4.5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white hover:text-[#14141a]">
+            {{ cta2.label }}
+          </NuxtLink>
         </div>
 
         <ul data-r style="--i: 4" class="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-[13px] text-white/80">
-          <li v-for="proof in proofs" :key="proof" class="flex items-center gap-2">
+          <li v-for="(proof, index) in proofs" :key="index" class="flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-            {{ proof }}
+            {{ proof.value }}
           </li>
         </ul>
       </div>

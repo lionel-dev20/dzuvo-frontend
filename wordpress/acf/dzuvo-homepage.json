@@ -1,0 +1,1472 @@
+[
+  {
+    "key": "group_dzuvo_settings",
+    "title": "Titres et textes des sections",
+    "fields": [
+      {
+        "key": "field_dzuvo_settings_tab0",
+        "label": "Accueil — Hero",
+        "name": "",
+        "aria-label": "",
+        "type": "tab",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "placement": "top",
+        "endpoint": 0
+      },
+      {
+        "key": "field_dzuvo_settings_intro0",
+        "label": "",
+        "name": "",
+        "aria-label": "",
+        "type": "message",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "message": "Le grand visuel vidéo du haut de page. La vidéo tourne en boucle, sans son. Un champ vide n’efface rien : le site garde alors son texte.",
+        "new_lines": "",
+        "esc_html": 1
+      },
+      {
+        "key": "field_dzuvo_settings_heroEyebrow",
+        "label": "Surtitre",
+        "name": "home_heroEyebrow",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Accessoires du quotidien · Prix justes",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroTitle",
+        "label": "Titre principal",
+        "name": "home_heroTitle",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Les petits accessoires qui rendent le quotidien plus simple",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroText",
+        "label": "Texte",
+        "name": "home_heroText",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroCtaLabel",
+        "label": "Bouton principal — texte",
+        "name": "home_heroCtaLabel",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Parcourir le catalogue",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroCtaTo",
+        "label": "Bouton principal — lien",
+        "name": "home_heroCtaTo",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/categories",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroCta2Label",
+        "label": "Bouton secondaire — texte",
+        "name": "home_heroCta2Label",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Voir nos favoris",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroCta2To",
+        "label": "Bouton secondaire — lien",
+        "name": "home_heroCta2To",
+        "aria-label": "",
+        "instructions": "Un lien du site, ou « #favoris » pour descendre à la sélection.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "#favoris",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroVideoSrc",
+        "label": "Fichier vidéo",
+        "name": "home_heroVideoSrc",
+        "aria-label": "",
+        "instructions": "Adresse d’un fichier MP4 (la médiathèque convient). Il est lu sans son et en boucle.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/videos/dzuvo-presentation.mp4",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroLoopSeconds",
+        "label": "Durée de la boucle (secondes)",
+        "name": "home_heroLoopSeconds",
+        "aria-label": "",
+        "instructions": "La vidéo revient au début après ce nombre de secondes. Défaut : 7.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "number",
+        "default_value": "",
+        "min": 2,
+        "max": 60,
+        "placeholder": "",
+        "step": 1,
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroProof1",
+        "label": "Argument 1",
+        "name": "home_heroProof1",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Livraison partout au Canada",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroProof2",
+        "label": "Argument 2",
+        "name": "home_heroProof2",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Garantie DZUVO 2 ans",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_heroProof3",
+        "label": "Argument 3",
+        "name": "home_heroProof3",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Compatible toutes marques",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_tab1",
+        "label": "Accueil — Produit du moment",
+        "name": "",
+        "aria-label": "",
+        "type": "tab",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "placement": "top",
+        "endpoint": 0
+      },
+      {
+        "key": "field_dzuvo_settings_intro1",
+        "label": "",
+        "name": "",
+        "aria-label": "",
+        "type": "message",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "message": "Le produit se choisit dans le bloc « Produits de l’accueil » plus bas sur cette page : prix, prix barré, stock et offres de quantité sont lus dans WooCommerce. Un champ vide n’efface rien : le site garde alors son texte.",
+        "new_lines": "",
+        "esc_html": 1
+      },
+      {
+        "key": "field_dzuvo_settings_featuredKicker",
+        "label": "Surtitre",
+        "name": "home_featuredKicker",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Produit du moment",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_featuredText",
+        "label": "Texte (remplace le résumé de la fiche)",
+        "name": "home_featuredText",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_tab2",
+        "label": "Accueil — Sélection",
+        "name": "",
+        "aria-label": "",
+        "type": "tab",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "placement": "top",
+        "endpoint": 0
+      },
+      {
+        "key": "field_dzuvo_settings_intro2",
+        "label": "",
+        "name": "",
+        "aria-label": "",
+        "type": "message",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "message": "Les quatre produits qui vont ensemble. Ils se choisissent dans le bloc « Produits de l’accueil » plus bas sur cette page. Un champ vide n’efface rien : le site garde alors son texte.",
+        "new_lines": "",
+        "esc_html": 1
+      },
+      {
+        "key": "field_dzuvo_settings_bundleKicker",
+        "label": "Surtitre",
+        "name": "home_bundleKicker",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Les favoris du moment",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_bundleTitle",
+        "label": "Titre",
+        "name": "home_bundleTitle",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Quatre accessoires qui vont bien ensemble",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_bundleLinkLabel",
+        "label": "Lien — texte",
+        "name": "home_bundleLinkLabel",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Tout le catalogue →",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_bundleLinkTo",
+        "label": "Lien — adresse",
+        "name": "home_bundleLinkTo",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/categories",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_tab3",
+        "label": "Accueil — Livraison",
+        "name": "",
+        "aria-label": "",
+        "type": "tab",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "placement": "top",
+        "endpoint": 0
+      },
+      {
+        "key": "field_dzuvo_settings_intro3",
+        "label": "",
+        "name": "",
+        "aria-label": "",
+        "type": "message",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "message": "La section « Livraison partout au Canada ». La photo se règle ici, sans fichier à déposer sur le serveur. Un champ vide n’efface rien : le site garde alors son texte.",
+        "new_lines": "",
+        "esc_html": 1
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryKicker",
+        "label": "Surtitre",
+        "name": "home_deliveryKicker",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Livraison",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryTitle",
+        "label": "Titre",
+        "name": "home_deliveryTitle",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Commandé aujourd’hui, à votre porte partout au Canada",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryText",
+        "label": "Texte",
+        "name": "home_deliveryText",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryImage",
+        "label": "Photo",
+        "name": "home_deliveryImage",
+        "aria-label": "",
+        "instructions": "Fond blanc ou transparent : la photo se fond dans la section. Sans photo, une illustration est affichée.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/images/livraison/livraison.jpg",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryCtaLabel",
+        "label": "Bouton — texte",
+        "name": "home_deliveryCtaLabel",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Zones et délais de livraison",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryCtaTo",
+        "label": "Bouton — lien",
+        "name": "home_deliveryCtaTo",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/livraison",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryFact1Value",
+        "label": "Chiffre 1 — valeur",
+        "name": "home_deliveryFact1Value",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Partout",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryFact1Label",
+        "label": "Chiffre 1 — légende",
+        "name": "home_deliveryFact1Label",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "du Québec à la Colombie-Britannique",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryFact2Value",
+        "label": "Chiffre 2 — valeur",
+        "name": "home_deliveryFact2Value",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Gratuit*",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryFact2Label",
+        "label": "Chiffre 2 — légende",
+        "name": "home_deliveryFact2Label",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "livraison et retours",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryFact3Value",
+        "label": "Chiffre 3 — valeur",
+        "name": "home_deliveryFact3Value",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "2 ans",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_deliveryFact3Label",
+        "label": "Chiffre 3 — légende",
+        "name": "home_deliveryFact3Label",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "de garantie DZUVO",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_tab4",
+        "label": "Accueil — Engagements",
+        "name": "",
+        "aria-label": "",
+        "type": "tab",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "placement": "top",
+        "endpoint": 0
+      },
+      {
+        "key": "field_dzuvo_settings_intro4",
+        "label": "",
+        "name": "",
+        "aria-label": "",
+        "type": "message",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "message": "La liste numérotée de nos engagements. Chaque ligne mène à sa page. Un champ vide n’efface rien : le site garde alors son texte.",
+        "new_lines": "",
+        "esc_html": 1
+      },
+      {
+        "key": "field_dzuvo_settings_commitmentsKicker",
+        "label": "Surtitre",
+        "name": "home_commitmentsKicker",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Nos engagements",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitmentsTitle",
+        "label": "Titre",
+        "name": "home_commitmentsTitle",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Acheter sans se poser de questions",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitmentsText",
+        "label": "Texte",
+        "name": "home_commitmentsText",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitmentsCtaLabel",
+        "label": "Bouton — texte",
+        "name": "home_commitmentsCtaLabel",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Lire tous nos engagements",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitmentsCtaTo",
+        "label": "Bouton — lien",
+        "name": "home_commitmentsCtaTo",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/engagements",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment1Title",
+        "label": "Engagement 1 — titre",
+        "name": "home_commitment1Title",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment1Text",
+        "label": "Engagement 1 — texte",
+        "name": "home_commitment1Text",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment1To",
+        "label": "Engagement 1 — lien",
+        "name": "home_commitment1To",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment2Title",
+        "label": "Engagement 2 — titre",
+        "name": "home_commitment2Title",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment2Text",
+        "label": "Engagement 2 — texte",
+        "name": "home_commitment2Text",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment2To",
+        "label": "Engagement 2 — lien",
+        "name": "home_commitment2To",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment3Title",
+        "label": "Engagement 3 — titre",
+        "name": "home_commitment3Title",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment3Text",
+        "label": "Engagement 3 — texte",
+        "name": "home_commitment3Text",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment3To",
+        "label": "Engagement 3 — lien",
+        "name": "home_commitment3To",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment4Title",
+        "label": "Engagement 4 — titre",
+        "name": "home_commitment4Title",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment4Text",
+        "label": "Engagement 4 — texte",
+        "name": "home_commitment4Text",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "textarea",
+        "default_value": "",
+        "maxlength": "",
+        "rows": 3,
+        "placeholder": "",
+        "new_lines": ""
+      },
+      {
+        "key": "field_dzuvo_settings_commitment4To",
+        "label": "Engagement 4 — lien",
+        "name": "home_commitment4To",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_tab5",
+        "label": "Accueil — Appel final",
+        "name": "",
+        "aria-label": "",
+        "type": "tab",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "placement": "top",
+        "endpoint": 0
+      },
+      {
+        "key": "field_dzuvo_settings_intro5",
+        "label": "",
+        "name": "",
+        "aria-label": "",
+        "type": "message",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "message": "Le bandeau rouge juste avant le pied de page. Un champ vide n’efface rien : le site garde alors son texte.",
+        "new_lines": "",
+        "esc_html": 1
+      },
+      {
+        "key": "field_dzuvo_settings_ctaTitle",
+        "label": "Titre",
+        "name": "home_ctaTitle",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Trouvez l’accessoire qui vous simplifie la vie",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_ctaText",
+        "label": "Texte",
+        "name": "home_ctaText",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Tout le catalogue, à petit prix, livré partout au Canada.",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_ctaLabel",
+        "label": "Bouton — texte",
+        "name": "home_ctaLabel",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Voir nos produits",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_settings_ctaTo",
+        "label": "Bouton — lien",
+        "name": "home_ctaTo",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/categories",
+        "prepend": "",
+        "append": ""
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "page_type",
+          "operator": "==",
+          "value": "front_page"
+        }
+      ]
+    ],
+    "menu_order": 10,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0
+  },
+  {
+    "key": "group_dzuvo_products",
+    "title": "Produits de l’accueil",
+    "fields": [
+      {
+        "key": "field_dzuvo_products_featured_product",
+        "label": "Produit du moment",
+        "name": "home_featured_product",
+        "aria-label": "",
+        "type": "relationship",
+        "instructions": "Le produit mis en vedette sous le hero : prix, prix barré, stock et offres de quantité sont lus dans sa fiche WooCommerce. Un seul produit.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "post_type": [
+          "product"
+        ],
+        "post_status": [
+          "publish"
+        ],
+        "taxonomy": "",
+        "filters": [
+          "search"
+        ],
+        "return_format": "id",
+        "min": "",
+        "max": 1,
+        "elements": [
+          "featured_image"
+        ],
+        "bidirectional": 0,
+        "bidirectional_target": []
+      },
+      {
+        "key": "field_dzuvo_products_bundle_products",
+        "label": "Sélection de quatre produits",
+        "name": "home_bundle_products",
+        "aria-label": "",
+        "type": "relationship",
+        "instructions": "Les produits qui vont ensemble, dans l’ordre d’affichage. Le nom et le résumé de chaque fiche servent de titre et de texte. 4 au maximum.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "post_type": [
+          "product"
+        ],
+        "post_status": [
+          "publish"
+        ],
+        "taxonomy": "",
+        "filters": [
+          "search"
+        ],
+        "return_format": "id",
+        "min": "",
+        "max": 4,
+        "elements": [
+          "featured_image"
+        ],
+        "bidirectional": 0,
+        "bidirectional_target": []
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "page_type",
+          "operator": "==",
+          "value": "front_page"
+        }
+      ]
+    ],
+    "menu_order": 20,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0
+  },
+  {
+    "key": "group_dzuvo_banner",
+    "title": "Contenu de la bannière",
+    "fields": [
+      {
+        "key": "field_dzuvo_banner_kicker",
+        "label": "Surtitre",
+        "name": "home_kicker",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Particuliers",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_banner_headline",
+        "label": "Titre",
+        "name": "home_headline",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Tout pour votre quotidien, au petit prix",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_banner_label",
+        "label": "Texte du bouton",
+        "name": "home_label",
+        "aria-label": "",
+        "instructions": "Posé sur la photo, sous le titre.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "Voir le catalogue",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_banner_to",
+        "label": "Lien",
+        "name": "home_to",
+        "aria-label": "",
+        "instructions": "",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "/categories",
+        "prepend": "",
+        "append": ""
+      },
+      {
+        "key": "field_dzuvo_banner_alt",
+        "label": "Description de l’image",
+        "name": "home_alt",
+        "aria-label": "",
+        "instructions": "Lue par les lecteurs d’écran. À défaut, le texte du bouton est utilisé.",
+        "required": 0,
+        "conditional_logic": 0,
+        "wrapper": {
+          "width": "",
+          "class": "",
+          "id": ""
+        },
+        "type": "text",
+        "default_value": "",
+        "maxlength": "",
+        "placeholder": "",
+        "prepend": "",
+        "append": ""
+      }
+    ],
+    "location": [
+      [
+        {
+          "param": "post_type",
+          "operator": "==",
+          "value": "dzuvo_banner"
+        }
+      ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0
+  }
+]

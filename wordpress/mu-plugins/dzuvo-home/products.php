@@ -29,6 +29,9 @@ const DZUVO_PRODUCTS_MAX    = 12;
 
 /** Nom du champ ACF qui porte la sélection. */
 const DZUVO_PRODUCTS_FIELD = 'products';
+const DZUVO_FEATURED_FIELD = 'featured_product';
+const DZUVO_BUNDLE_FIELD   = 'bundle_products';
+const DZUVO_BUNDLE_MAX     = 4;
 
 /** Identifiants retenus, dans l'ordre d'affichage. */
 function dzuvo_home_selected_product_ids() {
@@ -46,7 +49,7 @@ function dzuvo_home_selected_product_ids() {
 
 dzuvo_home_add_field_group(
 	'products',
-	'Produits du carrousel',
+	'Produits de l’accueil',
 	[
 		[
 			'acf' => [
@@ -64,6 +67,41 @@ dzuvo_home_add_field_group(
 				'filters'       => [ 'search' ],
 				'elements'      => [ 'featured_image' ],
 				'max'           => DZUVO_PRODUCTS_MAX,
+				'return_format' => 'id',
+			],
+		],
+		[
+			'acf' => [
+				'key'           => dzuvo_home_acf_key( 'products', DZUVO_FEATURED_FIELD ),
+				'label'         => 'Produit du moment',
+				'name'          => DZUVO_HOME_FIELD_PREFIX . DZUVO_FEATURED_FIELD,
+				'type'          => 'relationship',
+				'instructions'  => 'Le produit mis en vedette sous le hero : prix, prix barré, stock et offres de quantité (« Acheter 2, -5 % ») sont lus dans sa fiche WooCommerce. Un seul produit. Sans sélection, le site garde le sien.',
+				'required'      => 0,
+				'post_type'     => [ 'product' ],
+				'post_status'   => [ 'publish' ],
+				'filters'       => [ 'search' ],
+				'elements'      => [ 'featured_image' ],
+				'max'           => 1,
+				'return_format' => 'id',
+			],
+		],
+		[
+			'acf' => [
+				'key'           => dzuvo_home_acf_key( 'products', DZUVO_BUNDLE_FIELD ),
+				'label'         => 'Sélection de quatre produits',
+				'name'          => DZUVO_HOME_FIELD_PREFIX . DZUVO_BUNDLE_FIELD,
+				'type'          => 'relationship',
+				'instructions'  => sprintf(
+					'Les produits qui vont ensemble, dans l’ordre d’affichage. Le nom et le résumé de chaque fiche servent de titre et de texte. %d au maximum. Sans sélection, le site garde la sienne.',
+					DZUVO_BUNDLE_MAX
+				),
+				'required'      => 0,
+				'post_type'     => [ 'product' ],
+				'post_status'   => [ 'publish' ],
+				'filters'       => [ 'search' ],
+				'elements'      => [ 'featured_image' ],
+				'max'           => DZUVO_BUNDLE_MAX,
 				'return_format' => 'id',
 			],
 		],
@@ -101,4 +139,41 @@ function dzuvo_home_product_ids() {
 	}
 
 	return array_slice( $out, 0, DZUVO_PRODUCTS_MAX );
+}
+
+/**
+ * Identifiants d'une relation ACF, les produits dépubliés ou supprimés écartés.
+ * Même règle que pour le carrousel : rien d'absent ne reste en vitrine.
+ */
+function dzuvo_home_relation_product_ids( $field, $max ) {
+	$page_id = dzuvo_home_page_id();
+
+	if ( ! $page_id || ! function_exists( 'wc_get_product' ) ) {
+		return [];
+	}
+
+	$stored = (array) dzuvo_home_meta( $page_id, $field );
+	$out    = [];
+
+	foreach ( array_unique( array_filter( array_map( 'absint', $stored ) ) ) as $product_id ) {
+		$product = wc_get_product( $product_id );
+
+		if ( $product && 'publish' === get_post_status( $product->get_id() ) ) {
+			$out[] = $product->get_id();
+		}
+	}
+
+	return array_slice( $out, 0, $max );
+}
+
+/** Produit du moment : un identifiant, ou rien. */
+function dzuvo_home_featured_product_id() {
+	$ids = dzuvo_home_relation_product_ids( DZUVO_FEATURED_FIELD, 1 );
+
+	return $ids[0] ?? 0;
+}
+
+/** Les produits de la sélection, dans l'ordre choisi. */
+function dzuvo_home_bundle_product_ids() {
+	return dzuvo_home_relation_product_ids( DZUVO_BUNDLE_FIELD, DZUVO_BUNDLE_MAX );
 }

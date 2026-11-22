@@ -1,5 +1,6 @@
 import type { CatalogProduct } from '#shared/types/catalog'
 import type { NavItem } from '#shared/types/navigation'
+import type { HOME_TEXT_KEYS } from '#shared/utils/homeKeys'
 
 /**
  * Contenu de la page d'accueil servi par WordPress.
@@ -57,6 +58,9 @@ export interface HomeSpotlight {
 
 export interface HomeBanner {
   id: string
+  /** Surtitre et titre posés sur l'image ; absents, la bannière n'affiche que son bouton. */
+  kicker?: string
+  headline?: string
   label: string
   to: string
   image: string
@@ -78,7 +82,8 @@ export interface HomeTestimonial {
  * texte livré avec le site », ce qui évite qu'un champ laissé vide dans
  * l'administration efface un titre.
  */
-export interface HomeSettings {
+export interface HomeSettings extends Partial<Record<(typeof HOME_TEXT_KEYS)[number], string>> {
+  heroLoopSeconds?: number
   partRequestTitle?: string
   partRequestIntro?: string
   partRequestShortcut1Title?: string
@@ -125,11 +130,17 @@ export interface WpHomePayload {
    * l'autre, et le carrousel sait enfin ajouter au panier.
    */
   productIds: number[]
+  /** Produit du moment : un identifiant WooCommerce, ou 0 si rien n'est choisi. */
+  featuredProductId: number
+  /** Sélection de quatre produits, dans l'ordre d'affichage. */
+  bundleProductIds: number[]
 }
 
 /** Ce que le site consomme, une fois les produits résolus. */
-export interface HomeContent extends Omit<WpHomePayload, 'productIds'> {
+export interface HomeContent extends Omit<WpHomePayload, 'productIds' | 'featuredProductId' | 'bundleProductIds'> {
   products: CatalogProduct[]
+  featured: CatalogProduct | null
+  bundle: CatalogProduct[]
   /** D'où vient ce contenu : utile pour diagnostiquer une configuration. */
   source: 'wordpress' | 'indisponible'
 }

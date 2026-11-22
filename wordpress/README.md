@@ -74,6 +74,18 @@ métadonnées WordPress, pas par ACF.
 Une seule copie à la fois, comme pour les menus : ne pas laisser un bloc
 équivalent dans `wp-config.php`.
 
+### Nouvelle accueil (hero, produit du moment, sélection, livraison, engagements, appel final)
+
+Tout se règle sur la page d'accueil WordPress, dans **Page d'accueil > Titres, textes et produits** :
+
+- onglets « Accueil — … » : textes, boutons, liens, vidéo (`heroVideoSrc`, durée de boucle) et photo de livraison (`deliveryImage`) ;
+- bloc « Produits de l'accueil » : *Produit du moment* (1 produit, avec prix barré et offres de quantité lus dans WooCommerce) et *Sélection de quatre produits* ;
+- écran « Bannières d'accès » : surtitre, titre, bouton, lien et image de chaque bannière.
+
+Un champ vide garde le texte livré avec le site. Les clés des textes sont définies dans
+`shared/utils/homeKeys.ts` côté site : les renommer demande de les renommer dans `dzuvo-home/settings.php`.
+La route `/wp-json/dzuvo/v1/home` renvoie en plus `featuredProductId` et `bundleProductIds`.
+
 ### acf/dzuvo-homepage.json
 
 Export des 7 groupes de champs ACF de la page d'accueil (68 champs), généré à
